@@ -1,0 +1,3 @@
+displayName = Scuffed Anticheat
+author = Diamondman32
+version = 1.0
