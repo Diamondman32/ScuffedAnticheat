@@ -15,37 +15,50 @@ namespace VIRUS
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash }
 
     // Structs
-    public struct EzItem(Item item)
+    public struct EzItem
     {
         [JsonIgnore]
-        private readonly Item clone = item.Clone();
-        public string name = item.Name;
-        public int type = item.type;
-        public int stack = item.stack;
-        public int prefix = item.prefix;
-        public bool favorited = item.favorited;
+        private readonly Item clone;
+        public string name;
+        public int type;
+        public int stack;
+        public int prefix;
+        public bool favorited;
+
+        // Method
         public readonly Item GetClone()
         {
             return clone ?? new(type, stack, prefix) { favorited = favorited };
         }
+
+        // Constructor
+        public EzItem(Item item)
+        {
+            clone = item.Clone();
+            name = item.Name;
+            type = item.type;
+            stack = item.stack;
+            prefix = item.prefix;
+            favorited = item.favorited;
+        }
     }
-    public struct PlayerInventory()
+    public struct PlayerInventory
     {
         // member variables
-		public string name = "uninitialized";
-		public EzItem[] inventory = new EzItem[59];
-        public EzItem[] bank1 = new EzItem[40];
-        public EzItem[] bank2 = new EzItem[40];
-        public EzItem[] bank3 = new EzItem[40];
-        public EzItem[] bank4 = new EzItem[40];
-        public EzItem[] armor = new EzItem[20];
-        public EzItem[] dye = new EzItem[10];
-        public EzItem[] miscEquips = new EzItem[5];
-        public EzItem[] miscDyes = new EzItem[5];
-        public EzItem[] trash = new EzItem[1];
+		public string name;
+		public EzItem[] inventory;
+        public EzItem[] bank1;
+        public EzItem[] bank2;
+        public EzItem[] bank3;
+        public EzItem[] bank4;
+        public EzItem[] armor;
+        public EzItem[] dye;
+        public EzItem[] miscEquips;
+        public EzItem[] miscDyes;
+        public EzItem[] trash;
 
         // Public Method
-        private void Initialize()
+        private readonly void Initialize()
         {
             // Starter Items
             inventory[0] = new(new(ItemID.CopperShortsword));
@@ -80,6 +93,20 @@ namespace VIRUS
         }
 
         // Constructors
+        public PlayerInventory()
+        {
+            name = "uninitialized";
+            inventory = new EzItem[59];
+            bank1 = new EzItem[40];
+            bank2 = new EzItem[40];
+            bank3 = new EzItem[40];
+            bank4 = new EzItem[40];
+            armor = new EzItem[20];
+            dye = new EzItem[10];
+            miscEquips = new EzItem[5];
+            miscDyes = new EzItem[5];
+            trash = new EzItem[1];
+        }
         public PlayerInventory(string name) : this()
         {
             this.name = name;
