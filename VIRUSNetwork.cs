@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.IO;
 using System.Collections.Generic;
 using Terraria;
@@ -7,123 +6,109 @@ using Terraria.Chat;
 using Terraria.Localization;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Default;
-using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace VIRUS
 {
     // Enums
     public enum MessageType { CheckInventory, UpdateItem, ModifyItem }
-    public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes }
-    //
+    public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash }
 
-    // Struct
-    public struct PlayerInventory
+    // Structs
+    public struct EzItem(Item item)
+    {
+        [JsonIgnore]
+        private readonly Item clone = item.Clone();
+        public string name = item.Name;
+        public int type = item.type;
+        public int stack = item.stack;
+        public int prefix = item.prefix;
+        public bool favorited = item.favorited;
+        public readonly Item GetClone()
+        {
+            return clone ?? new(type, stack, prefix) { favorited = favorited };
+        }
+    }
+    public struct PlayerInventory()
     {
         // member variables
-		public string name;
-		public Item[] inventory;
-        public Item[] bank1;
-        public Item[] bank2;
-        public Item[] bank3;
-        public Item[] bank4;
-		public Item[] armor;
-		public Item[] dye;
-        public Item[] miscEquips;
-        public Item[] miscDyes;
+		public string name = "uninitialized";
+		public EzItem[] inventory = new EzItem[59];
+        public EzItem[] bank1 = new EzItem[40];
+        public EzItem[] bank2 = new EzItem[40];
+        public EzItem[] bank3 = new EzItem[40];
+        public EzItem[] bank4 = new EzItem[40];
+        public EzItem[] armor = new EzItem[20];
+        public EzItem[] dye = new EzItem[10];
+        public EzItem[] miscEquips = new EzItem[5];
+        public EzItem[] miscDyes = new EzItem[5];
+        public EzItem[] trash = new EzItem[1];
 
         // Public Method
         private void Initialize()
         {
             // Starter Items
-            inventory[0] = new Item(ItemID.CopperShortsword);
-            inventory[1] = new Item(ItemID.CopperPickaxe);
-            inventory[2] = new Item(ItemID.CopperAxe);
+            inventory[0] = new(new(ItemID.CopperShortsword));
+            inventory[1] = new(new(ItemID.CopperPickaxe));
+            inventory[2] = new(new(ItemID.CopperAxe));
             if(ModLoader.TryGetMod("CalamityMod", out Mod calamityMod))
             {
                 if(ModContent.TryFind("CalamityMod", "StarterBag", out ModItem item))
-                    inventory[3] = item.Item;
+                    inventory[3] = new(item.Item);
             } else
-                inventory[3] = new Item(0);
+                inventory[3] = new(new(ItemID.None));
 
             for(int i=4;i<inventory.Length;i++)
-                inventory[i] = new Item(0);
+                inventory[i] = new(new(ItemID.None));
             for(int i=0;i<bank1.Length;i++)
-                bank1[i] = new Item(0);
+                bank1[i] = new(new(ItemID.None));
             for(int i=0;i<bank2.Length;i++)
-                bank2[i] = new Item(0);
+                bank2[i] = new(new(ItemID.None));
             for(int i=0;i<bank3.Length;i++)
-                bank3[i] = new Item(0);
+                bank3[i] = new(new(ItemID.None));
             for(int i=0;i<bank4.Length;i++)
-                bank4[i] = new Item(0);
+                bank4[i] = new(new(ItemID.None));
             for(int i=0;i<armor.Length;i++)
-                armor[i] = new Item(0);
+                armor[i] = new(new(ItemID.None));
             for(int i=0;i<dye.Length;i++)
-                dye[i] = new Item(0);
+                dye[i] = new(new(ItemID.None));
             for(int i=0;i<miscEquips.Length;i++)
-                miscEquips[i] = new Item(0);
+                miscEquips[i] = new(new(ItemID.None));
             for(int i=0;i<miscDyes.Length;i++)
-                miscDyes[i] = new Item(0);
+                miscDyes[i] = new(new(ItemID.None));
+            trash[0] = new(new(ItemID.None));
         }
 
         // Constructors
-        public PlayerInventory()
-        {
-            name = "";
-            inventory = new Item[59];
-            bank1 = new Item[40];
-            bank2 = new Item[40];
-            bank3 = new Item[40];
-            bank4 = new Item[40];
-            armor = new Item[20];
-            dye = new Item[59];
-            miscEquips = new Item[5];
-            miscDyes = new Item[5];
-            Initialize();
-        }
-        public PlayerInventory(string name)
+        public PlayerInventory(string name) : this()
         {
             this.name = name;
-            inventory = new Item[59];
-            bank1 = new Item[40];
-            bank2 = new Item[40];
-            bank3 = new Item[40];
-            bank4 = new Item[40];
-            armor = new Item[20];
-            dye = new Item[59];
-            miscEquips = new Item[5];
-            miscDyes = new Item[5];
             Initialize();
         }
-        public PlayerInventory(Player player)
+        public PlayerInventory(Player player) : this()
         {
             name = player.name;
-            inventory = player.inventory;
-            bank1 = player.bank.item;
-            bank2 = player.bank2.item;
-            bank3 = player.bank3.item;
-            bank4 = player.bank4.item;
-            armor = player.armor;
-            dye = player.dye;
-            miscEquips = player.miscEquips;
-            miscDyes = player.miscDyes;
-        }
-        public PlayerInventory(string name, Item[] inventory, Item[] bank1, Item[] bank2, Item[] bank3, Item[] bank4, Item[] armor, Item[] dye, Item[] miscEquips, Item[] miscDyes)
-        {
-            this.name = name;
-            this.inventory = inventory;
-            this.bank1 = bank1;
-            this.bank2 = bank2;
-            this.bank3 = bank3;
-            this.bank4 = bank4;
-            this.armor = armor;
-            this.dye = dye;
-            this.miscEquips = miscEquips;
-            this.miscDyes = miscDyes;
+            for(int i=0;i<inventory.Length;i++)
+                inventory[i] = new(player.inventory[i]);
+            for(int i=0;i<bank1.Length;i++)
+                bank1[i] = new(player.bank.item[i]);
+            for(int i=0;i<bank2.Length;i++)
+                bank2[i] = new(player.bank2.item[i]);
+            for(int i=0;i<bank3.Length;i++)
+                bank3[i] = new(player.bank3.item[i]);
+            for(int i=0;i<bank4.Length;i++)
+                bank4[i] = new(player.bank4.item[i]);
+            for(int i=0;i<armor.Length;i++)
+                armor[i] = new(player.armor[i]);
+            for(int i=0;i<dye.Length;i++)
+                dye[i] = new(player.dye[i]);
+            for(int i=0;i<miscEquips.Length;i++)
+                miscEquips[i] = new(player.miscEquips[i]);
+            for(int i=0;i<miscDyes.Length;i++)
+                miscDyes[i] = new(player.miscDyes[i]);
+            trash[0] = new(player.trashItem);
         }
     }
-    //
 
     public class Network
     {
@@ -164,24 +149,6 @@ namespace VIRUS
             PlayerInventory savedInventory = Deserialize(Main.player[playerNumber].name);
 
             UpdateInventory(player, savedInventory, MessageType.ModifyItem, out PlayerInventory disregard);
-            
-            
-
-            // if(ModLoader.TryGetMod("CalamityMod", out Mod calamity))
-            // {
-            //     calamity.GetType().Assembly.GetType()
-            //     var calamityModPlayerType = calamity.GetType().Assembly.GetType("CalamityMod.CalamityPlayer");
-
-            //     if(calamityModPlayerType != null)
-            //     {
-            //         var modPlayerInstance = player.GetModPlayer(calamityModPlayerType);
-            //     }
-
-            //     if(player.TryGetModPlayer(calamity.GetType().Assembly.GetType("CalamityMod.CalamityPlayer"), out var calPLayer))
-            //     {
-                    
-            //     }
-            // }
         }
         public static void UpdateInventory(Player player, PlayerInventory savedInventory, MessageType type, out PlayerInventory newInventory)
         {
@@ -295,8 +262,17 @@ namespace VIRUS
                     newInventory.miscDyes[i] = playerInventory.miscDyes[i];
                 }
             }
+
+            if(!IsIdentical(playerInventory.trash[0], savedInventory.trash[0]))
+            {
+                if(type == MessageType.ModifyItem)
+                    SendPacket(player, type, ItemCategory.Trash, 0, savedInventory.trash[0]);
+                else
+                    SendPacket(player, type, ItemCategory.Trash, 0, playerInventory.trash[0], true);
+                newInventory.trash[0] = playerInventory.trash[0];
+            }
         }
-        public static bool IsIdentical(Item item1, Item item2)
+        public static bool IsIdentical(EzItem item1, EzItem item2)
         {
             if(item1.type == item2.type && item1.prefix == item2.prefix && item1.stack == item2.stack)
                 return true;
@@ -306,7 +282,7 @@ namespace VIRUS
         public static void ProcessUpdateInventory(ref BinaryReader reader)
         {
             int playerNum = reader.ReadByte();
-            Player player = Main.player[playerNum];
+            Player player = (Player)Main.player[playerNum].Clone();
             // Variables
             ItemCategory itemCategory = (ItemCategory)reader.ReadByte();
             int itemIndex = reader.ReadByte();
@@ -322,39 +298,44 @@ namespace VIRUS
                     inventoryIndex = i;
             if(inventoryIndex == savedInventories.Count)
                 savedInventories.Add(new(player));
-
-            switch(itemCategory)
+            else
             {
-                case ItemCategory.Inventory:
-                    savedInventories[inventoryIndex].inventory[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Bank1:
-                    savedInventories[inventoryIndex].bank1[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Bank2:
-                    savedInventories[inventoryIndex].bank2[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Bank3:
-                    savedInventories[inventoryIndex].bank3[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Bank4:
-                    savedInventories[inventoryIndex].bank4[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Armor:
-                    savedInventories[inventoryIndex].armor[itemIndex] = newItem;
-                    break;
-                case ItemCategory.Dye:
-                    savedInventories[inventoryIndex].dye[itemIndex] = newItem;
-                    break;
-                case ItemCategory.MiscEquips:
-                    savedInventories[inventoryIndex].miscEquips[itemIndex] = newItem;
-                    break;
-                case ItemCategory.MiscDyes:
-                    savedInventories[inventoryIndex].miscDyes[itemIndex] = newItem;
-                    break;
+                switch(itemCategory)
+                {
+                    case ItemCategory.Inventory:
+                        savedInventories[inventoryIndex].inventory[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Bank1:
+                        savedInventories[inventoryIndex].bank1[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Bank2:
+                        savedInventories[inventoryIndex].bank2[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Bank3:
+                        savedInventories[inventoryIndex].bank3[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Bank4:
+                        savedInventories[inventoryIndex].bank4[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Armor:
+                        savedInventories[inventoryIndex].armor[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Dye:
+                        savedInventories[inventoryIndex].dye[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.MiscEquips:
+                        savedInventories[inventoryIndex].miscEquips[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.MiscDyes:
+                        savedInventories[inventoryIndex].miscDyes[itemIndex] = new(newItem);
+                        break;
+                    case ItemCategory.Trash:
+                        savedInventories[inventoryIndex].trash[0] = new(newItem);
+                        break;
+                }
             }
 
-            string json = JsonConvert.SerializeObject(savedInventories, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(savedInventories);
             using StreamWriter outputFile = new(FilePath);
             outputFile.WriteLine(json);
             outputFile.Close();
@@ -399,6 +380,9 @@ namespace VIRUS
                     case ItemCategory.MiscDyes:
                         Main.LocalPlayer.miscDyes[itemIndex] = newItem;
                         break;
+                    case ItemCategory.Trash:
+                        Main.LocalPlayer.trashItem = newItem;
+                        break;
                 }
             }
         }
@@ -411,7 +395,7 @@ namespace VIRUS
                 r.Close();
                 if(!string.IsNullOrEmpty(json))
                 {
-                    List<PlayerInventory> inventories = System.Text.Json.JsonSerializer.Deserialize<List<PlayerInventory>>(json);
+                    List<PlayerInventory> inventories = JsonConvert.DeserializeObject<List<PlayerInventory>>(json);
                     for (int i=0;i<inventories.Count;i++)
                         if (inventories[i].name == playerName) // TODO: Make an unique identifier (e.g. two players with same name will break this)
                             return inventories[i];
@@ -432,9 +416,10 @@ namespace VIRUS
             }
             else
                 File.Create(FilePath);
-            return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : System.Text.Json.JsonSerializer.Deserialize<List<PlayerInventory>>(json);
+            // return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : System.Text.Json.JsonSerializer.Deserialize<List<PlayerInventory>>(json);
+            return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : JsonConvert.DeserializeObject<List<PlayerInventory>>(json);
         }
-        public static void SendPacket(Player player, MessageType type, ItemCategory category, int index, Item newItem, bool toServer=false)
+        public static void SendPacket(Player player, MessageType type, ItemCategory category, int index, EzItem newItem, bool toServer=false)
         {
             // Create packet
             var packet = VIRUS.instance.GetPacket();
@@ -444,7 +429,7 @@ namespace VIRUS
             packet.Write((byte)player.whoAmI);
             packet.Write((byte)category);
             packet.Write((byte)index);
-            Terraria.ModLoader.IO.ItemIO.Send(newItem, packet, true, true);
+            Terraria.ModLoader.IO.ItemIO.Send(newItem.GetClone(), packet, true, true);
 
             if(toServer)
                 packet.Send(255); // Send to server

@@ -1,15 +1,11 @@
 using Terraria.ModLoader;
 using Terraria;
-using Terraria.Chat;
-using Terraria.Localization;
-using Microsoft.Xna.Framework;
-using Terraria.ID;
 
 namespace VIRUS
 {
     public class VIRUSPlayer : ModPlayer
 	{
-        public PlayerInventory oldInventory = new(Main.LocalPlayer);
+        public PlayerInventory oldInventory = new("uninitialized");
 
         public override void OnEnterWorld(Player player)
         {
@@ -20,6 +16,7 @@ namespace VIRUS
 
         public override void PostUpdate()
         {
+            if(oldInventory.name == "uninitialized") oldInventory = new(Main.LocalPlayer);
             Network.UpdateInventory(Main.LocalPlayer, oldInventory, MessageType.UpdateItem, out PlayerInventory newInventory);
             oldInventory = newInventory;
         }

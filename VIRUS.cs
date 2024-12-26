@@ -23,8 +23,6 @@ namespace VIRUS
 }
 
 // TODO:
-//  Create json file and check serialization/deserialization                                  -- NEEDS CHECKING
-//  Create UpdateInv method                                                                   -- NEEDS CHECKING
 //  Find a way to check Calamity's extra accessory slot
 //  Add a place where "deleted" items are recorded
 
