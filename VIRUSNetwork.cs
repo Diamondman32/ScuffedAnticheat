@@ -215,7 +215,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.bank1[i], savedInventory.bank1[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.bank1[i]);
                         SendPacket(player, type, ItemCategory.Bank1, i, savedInventory.bank1[i]);
                     }
                     else
@@ -229,7 +229,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.bank2[i], savedInventory.bank2[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.bank2[i]);
                         SendPacket(player, type, ItemCategory.Bank2, i, savedInventory.bank2[i]);
                     }
                     else
@@ -243,7 +243,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.bank3[i], savedInventory.bank3[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.bank3[i]);
                         SendPacket(player, type, ItemCategory.Bank3, i, savedInventory.bank3[i]);
                     }
                     else
@@ -257,7 +257,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.bank4[i], savedInventory.bank4[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.bank4[i]);
                         SendPacket(player, type, ItemCategory.Bank4, i, savedInventory.bank4[i]);
                     }
                     else
@@ -271,7 +271,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.armor[i], savedInventory.armor[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.armor[i]);
                         SendPacket(player, type, ItemCategory.Armor, i, savedInventory.armor[i]);
                     }
                     else
@@ -285,7 +285,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.dye[i], savedInventory.dye[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.dye[i]);
                         SendPacket(player, type, ItemCategory.Dye, i, savedInventory.dye[i]);
                     }
                     else
@@ -299,7 +299,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.miscEquips[i], savedInventory.miscEquips[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.miscEquips[i]);
                         SendPacket(player, type, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
                     }
                     else
@@ -313,7 +313,7 @@ namespace VIRUS
                 if(!IsIdentical(playerInventory.miscDyes[i], savedInventory.miscDyes[i]))
                 {
                     if(type == MessageType.ModifyItem) {
-                        AddToDiscardPile(player, playerInventory.inventory[i]);
+                        AddToDiscardPile(player, playerInventory.miscDyes[i]);
                         SendPacket(player, type, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
                     }
                     else
