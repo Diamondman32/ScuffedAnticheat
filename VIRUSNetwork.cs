@@ -136,14 +136,31 @@ namespace VIRUS
             trash[0] = new(player.trashItem);
         }
     }
+    public struct DeletedItem
+    {
+        public EzItem item;
+        public string owner;
+        public DeletedItem(EzItem ezItem, string name)
+        {
+            item = ezItem;
+            owner = name;
+        }
+    }
 
     public class Network
     {
-        public static string FilePath { get; } = string.Concat(new object[]
+        public static string CharacterDataPath { get; } = string.Concat(new object[]
                 {
                         Main.SavePath,
                         Path.DirectorySeparatorChar,
                         "AnticheatCharacterData",
+                        ".json"
+                });
+        public static string DiscardItemDataPath { get; } = string.Concat(new object[]
+                {
+                        Main.SavePath,
+                        Path.DirectorySeparatorChar,
+                        "AnticheatDiscardData",
                         ".json"
                 });
 
@@ -186,11 +203,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.inventory[i], savedInventory.inventory[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Inventory, i, savedInventory.inventory[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Inventory, i, playerInventory.inventory[i], true);
-                    newInventory.inventory[i] = playerInventory.inventory[i];
+                    newInventory.inventory[i] = playerInventory.inventory[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -198,11 +217,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.bank1[i], savedInventory.bank1[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Bank1, i, savedInventory.bank1[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Bank1, i, playerInventory.bank1[i], true);
-                    newInventory.bank1[i] = playerInventory.bank1[i];
+                    newInventory.bank1[i] = playerInventory.bank1[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -210,11 +231,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.bank2[i], savedInventory.bank2[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Bank2, i, savedInventory.bank2[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Bank2, i, playerInventory.bank2[i], true);
-                    newInventory.bank2[i] = playerInventory.bank2[i];
+                    newInventory.bank2[i] = playerInventory.bank2[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -222,11 +245,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.bank3[i], savedInventory.bank3[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Bank3, i, savedInventory.bank3[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Bank3, i, playerInventory.bank3[i], true);
-                    newInventory.bank3[i] = playerInventory.bank3[i];
+                    newInventory.bank3[i] = playerInventory.bank3[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -234,11 +259,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.bank4[i], savedInventory.bank4[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Bank4, i, savedInventory.bank4[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Bank4, i, playerInventory.bank4[i], true);
-                    newInventory.bank4[i] = playerInventory.bank4[i];
+                    newInventory.bank4[i] = playerInventory.bank4[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -246,11 +273,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.armor[i], savedInventory.armor[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Armor, i, savedInventory.armor[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Armor, i, playerInventory.armor[i], true);
-                    newInventory.armor[i] = playerInventory.armor[i];
+                    newInventory.armor[i] = playerInventory.armor[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -258,11 +287,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.dye[i], savedInventory.dye[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.Dye, i, savedInventory.dye[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.Dye, i, playerInventory.dye[i], true);
-                    newInventory.dye[i] = playerInventory.dye[i];
+                    newInventory.dye[i] = playerInventory.dye[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -270,11 +301,13 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.miscEquips[i], savedInventory.miscEquips[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.MiscEquips, i, playerInventory.miscEquips[i], true);
-                    newInventory.miscEquips[i] = playerInventory.miscEquips[i];
+                    newInventory.miscEquips[i] = playerInventory.miscEquips[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
             
@@ -282,21 +315,25 @@ namespace VIRUS
             {
                 if(!IsIdentical(playerInventory.miscDyes[i], savedInventory.miscDyes[i]))
                 {
-                    if(type == MessageType.ModifyItem)
+                    if(type == MessageType.ModifyItem) {
+                        AddToDiscardPile(player, playerInventory.inventory[i]);
                         SendPacket(player, type, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
+                    }
                     else
                         SendPacket(player, type, ItemCategory.MiscDyes, i, playerInventory.miscDyes[i], true);
-                    newInventory.miscDyes[i] = playerInventory.miscDyes[i];
+                    newInventory.miscDyes[i] = playerInventory.miscDyes[i]; // might be a race condition. shouldn't matter hopefully
                 }
             }
 
             if(!IsIdentical(playerInventory.trash[0], savedInventory.trash[0]))
             {
-                if(type == MessageType.ModifyItem)
+                if(type == MessageType.ModifyItem) {
+                    AddToDiscardPile(player, playerInventory.trash[0]);
                     SendPacket(player, type, ItemCategory.Trash, 0, savedInventory.trash[0]);
+                }
                 else
                     SendPacket(player, type, ItemCategory.Trash, 0, playerInventory.trash[0], true);
-                newInventory.trash[0] = playerInventory.trash[0];
+                newInventory.trash[0] = playerInventory.trash[0]; // might be a race condition. shouldn't matter hopefully
             }
         }
         public static bool IsIdentical(EzItem item1, EzItem item2)
@@ -305,6 +342,32 @@ namespace VIRUS
                 return true;
             else
                 return false;
+        }
+        public static void AddToDiscardPile(Player player, EzItem item)
+        {
+            if(Main.netMode != NetmodeID.Server)
+                return;
+            if(item.type == 0)
+                return;
+
+            string json = null;
+            if(File.Exists(DiscardItemDataPath))
+            {
+                using StreamReader r = new(DiscardItemDataPath);
+                json = r.ReadToEnd();
+                r.Close();
+            }
+            else
+                File.Create(DiscardItemDataPath);
+            List<DeletedItem> items = string.IsNullOrEmpty(json) ? new List<DeletedItem>() : JsonConvert.DeserializeObject<List<DeletedItem>>(json) ?? new List<DeletedItem>();            
+
+            DeletedItem deletedItem = new(item, player.name);
+            items.Add(deletedItem);
+
+            json = JsonConvert.SerializeObject(items);
+            using StreamWriter outputFile = new(DiscardItemDataPath);
+            outputFile.WriteLine(json);
+            outputFile.Close();
         }
         public static void ProcessUpdateInventory(ref BinaryReader reader)
         {
@@ -363,7 +426,7 @@ namespace VIRUS
             }
 
             string json = JsonConvert.SerializeObject(savedInventories);
-            using StreamWriter outputFile = new(FilePath);
+            using StreamWriter outputFile = new(CharacterDataPath);
             outputFile.WriteLine(json);
             outputFile.Close();
         }
@@ -415,36 +478,35 @@ namespace VIRUS
         }
         public static PlayerInventory Deserialize(string playerName)
 		{
-            if(File.Exists(FilePath))
+            if(File.Exists(CharacterDataPath))
             {
-                using StreamReader r = new(FilePath);
+                using StreamReader r = new(CharacterDataPath);
                 string json = r.ReadToEnd();
                 r.Close();
                 if(!string.IsNullOrEmpty(json))
                 {
-                    List<PlayerInventory> inventories = JsonConvert.DeserializeObject<List<PlayerInventory>>(json);
+                    List<PlayerInventory> inventories = JsonConvert.DeserializeObject<List<PlayerInventory>>(json) ?? new List<PlayerInventory>();
                     for (int i=0;i<inventories.Count;i++)
                         if (inventories[i].name == playerName) // TODO: Make an unique identifier (e.g. two players with same name will break this)
                             return inventories[i];
                 }
             }
             else
-                File.Create(FilePath);
+                File.Create(CharacterDataPath);
             return new PlayerInventory(playerName);
         }
         public static List<PlayerInventory> Deserialize()
 		{
             string json = null;
-            if(File.Exists(FilePath))
+            if(File.Exists(CharacterDataPath))
             {
-                using StreamReader r = new(FilePath);
+                using StreamReader r = new(CharacterDataPath);
                 json = r.ReadToEnd();
                 r.Close();
             }
             else
-                File.Create(FilePath);
-            // return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : System.Text.Json.JsonSerializer.Deserialize<List<PlayerInventory>>(json);
-            return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : JsonConvert.DeserializeObject<List<PlayerInventory>>(json);
+                File.Create(CharacterDataPath);
+            return string.IsNullOrEmpty(json) ? new List<PlayerInventory>() : JsonConvert.DeserializeObject<List<PlayerInventory>>(json) ?? new List<PlayerInventory>();
         }
         public static void SendPacket(Player player, MessageType type, ItemCategory category, int index, EzItem newItem, bool toServer=false)
         {

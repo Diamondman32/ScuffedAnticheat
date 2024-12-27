@@ -2,6 +2,10 @@ using Terraria.ModLoader;
 using System.IO;
 using Terraria;
 using Terraria.ID;
+using ReLogic.Content;
+using Microsoft.Xna.Framework.Graphics;
+using System;
+using Terraria.GameContent;
 
 namespace VIRUS
 {
@@ -13,7 +17,10 @@ namespace VIRUS
         {
 			instance = this;
             if(Main.netMode == NetmodeID.Server)
+            {
                 Directory.CreateDirectory(Main.SavePath);
+                
+            }
         }
         public override void HandlePacket(BinaryReader reader, int whoAmI)
 		{
@@ -23,8 +30,6 @@ namespace VIRUS
 }
 
 // TODO:
-//  Find a way to check Calamity's extra accessory slot
-//  Add a place where "deleted" items are recorded
 
 //  Side Projects:
 //  Consider tracking and updating player position
