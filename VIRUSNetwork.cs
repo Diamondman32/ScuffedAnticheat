@@ -186,10 +186,7 @@ namespace VIRUS
         // General Messages
         public static void ProcessCheckInventory(int playerNumber)
         {
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("Checking Inventory"), Color.Green);
-
             Player player = Main.player[playerNumber];
-            // PlayerInventory currentInventory = new(player);
             PlayerInventory savedInventory = Deserialize(Main.player[playerNumber].name);
 
             UpdateInventory(player, savedInventory, MessageType.ModifyItem, out PlayerInventory disregard);
@@ -350,6 +347,8 @@ namespace VIRUS
             if(item.type == 0)
                 return;
 
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{player.name}'s {item.name} broke causality and has left our plane of existance."), Color.Purple);
+
             string json = null;
             if(File.Exists(DiscardItemDataPath))
             {
@@ -378,8 +377,6 @@ namespace VIRUS
             int itemIndex = reader.ReadByte();
             Item newItem = Terraria.ModLoader.IO.ItemIO.Receive(reader, true, true);
             List<PlayerInventory> savedInventories = Deserialize();
-
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Modifying Saved Inventory array\nItem: {newItem.Name} at i={itemIndex}"), Color.Green);
 
             // Get Index of player inventory if it exists, otherwise create new player entry
             int inventoryIndex = savedInventories.Count;
@@ -438,8 +435,6 @@ namespace VIRUS
                 ItemCategory itemCategory = (ItemCategory)reader.ReadByte();
                 int itemIndex = reader.ReadByte();
                 Item newItem = Terraria.ModLoader.IO.ItemIO.Receive(reader, true, true);
-
-                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Incorrect Item Found At i={itemIndex}:\nCorrect: {newItem.Name}Actual: {Main.LocalPlayer.inventory[itemIndex].Name}"), Color.Green);
 
                 switch(itemCategory)
                 {
