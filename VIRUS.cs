@@ -19,7 +19,17 @@ namespace VIRUS
             if(Main.netMode == NetmodeID.Server)
             {
                 Directory.CreateDirectory(Main.SavePath);
-                
+                if(ModLoader.TryGetMod("HerosMod", out Mod herosMod))
+                {
+                    string permissionName = "admin";
+                    Asset<Texture2D> texture = TextureAssets.Trash;
+                    Action buttonClicked = () => {};
+                    Action<bool> groupUpdated = (bool b) => {
+
+                    };
+                    Func<string> tooltip = () => {return "This is a tooltip, obviously.";};
+                    herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
+                }
             }
         }
         public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -30,7 +40,9 @@ namespace VIRUS
 }
 
 // TODO:
+// Investigate unique identifiers for players
+// Add per-world support in data 
 
 //  Side Projects:
 //  Consider tracking and updating player position
-//  Add an integrated in-game menu that can access "deleted" items
+//  Add an integrated in-game menu that can access "deleted" items <--

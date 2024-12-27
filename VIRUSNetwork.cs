@@ -379,7 +379,7 @@ namespace VIRUS
             Item newItem = Terraria.ModLoader.IO.ItemIO.Receive(reader, true, true);
             List<PlayerInventory> savedInventories = Deserialize();
 
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Modifying Saved Inventory array\n\tItem: {newItem.Name} at i={itemIndex}"), Color.Green);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Modifying Saved Inventory array\nItem: {newItem.Name} at i={itemIndex}"), Color.Green);
 
             // Get Index of player inventory if it exists, otherwise create new player entry
             int inventoryIndex = savedInventories.Count;
@@ -439,7 +439,7 @@ namespace VIRUS
                 int itemIndex = reader.ReadByte();
                 Item newItem = Terraria.ModLoader.IO.ItemIO.Receive(reader, true, true);
 
-                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Incorrect Item Found At i={itemIndex}:\n\tCorrect: {newItem.Name}\tActual: {Main.LocalPlayer.inventory[itemIndex].Name}"), Color.Green);
+                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"Incorrect Item Found At i={itemIndex}:\nCorrect: {newItem.Name}Actual: {Main.LocalPlayer.inventory[itemIndex].Name}"), Color.Green);
 
                 switch(itemCategory)
                 {
