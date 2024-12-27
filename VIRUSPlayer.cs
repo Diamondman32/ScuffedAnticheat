@@ -9,16 +9,22 @@ namespace VIRUS
 
         public override void OnEnterWorld(Player player)
         {
-            var packet = VIRUS.instance.GetPacket();
-            packet.Write((byte)MessageType.CheckInventory);
-            packet.Send(255); // Send to server
+            if(Main.dedServ)
+            {
+                var packet = VIRUS.instance.GetPacket();
+                packet.Write((byte)MessageType.CheckInventory);
+                packet.Send(255); // Send to server
+            }
         }
 
         public override void PostUpdate()
         {
-            if(oldInventory.name == "uninitialized") oldInventory = new(Main.LocalPlayer);
-            Network.UpdateInventory(Main.LocalPlayer, oldInventory, MessageType.UpdateItem, out PlayerInventory newInventory);
-            oldInventory = newInventory;
+            if(Main.dedServ)
+            {
+                if(oldInventory.name == "uninitialized") oldInventory = new(Main.LocalPlayer);
+                Network.UpdateInventory(Main.LocalPlayer, oldInventory, MessageType.UpdateItem, out PlayerInventory newInventory);
+                oldInventory = newInventory;
+            }
         }
     }
 }
