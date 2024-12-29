@@ -7,11 +7,9 @@ using Terraria.Localization;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
-using ReLogic.Threading;
 using System.Threading.Tasks;
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace VIRUS
 {
@@ -352,7 +350,7 @@ namespace VIRUS
             if(item.type == 0)
                 return;
 
-            // Async method that waits until player join for a max of 60 seconds
+            // Async method that waits until player join for a max of 60 seconds (so message is not sent before the player joins)
             Func<Task> WaitThenSendMessage = async () => {
                 await Task.Run(() => {
                     bool timeHasRunOut = false;
