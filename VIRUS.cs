@@ -6,6 +6,7 @@ using ReLogic.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria.GameContent;
+using VIRUS.Services;
 
 namespace VIRUS
 {
@@ -13,6 +14,22 @@ namespace VIRUS
 	{
 		public static VIRUS instance;
 
+        public override void PostSetupContent()
+        {
+            if(ModLoader.TryGetMod("HerosMod", out Mod herosMod))
+            {
+                // Add a permission
+                string permissionName = "RecoverItemsFromVoid";
+                herosMod.Call("AddPermission", permissionName, "Recover Items From Void", null);
+
+                // Add a button
+                Asset<Texture2D> texture = TextureAssets.Trash;
+                Action buttonClicked = () => {};
+                Action<bool> groupUpdated = (bool b) => {};
+                Func<string> tooltip = () => {return "This is a tooltip, obviously.";};
+                herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
+            }
+        }
         public override void Load()
         {
 			instance = this;
