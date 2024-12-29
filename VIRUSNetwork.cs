@@ -7,6 +7,9 @@ using Terraria.Localization;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
+using System;
+using System.Threading;
 
 namespace VIRUS
 {
@@ -347,7 +350,19 @@ namespace VIRUS
             if(item.type == 0)
                 return;
 
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{player.name}'s {item.name} broke causality and has left our plane of existance."), Color.Purple);
+            // Async method that waits until player join for a max of 60 seconds (so message is not sent before the player joins)
+            Func<Task> WaitThenSendMessage = async () => {
+                await Task.Run(() => {
+                    bool timeHasRunOut = false;
+                    var EndTime = (bool b) => {b = true;};
+                    Timer timer = new((Object stateInfo) => {}, EndTime, 60000, Timeout.Infinite);
+                    while(player.active != true || player == null || timeHasRunOut) {}
+                    if(!timeHasRunOut && player != null)
+                        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{player.name}'s {item.name} broke causality and has left our plane of existance."), Color.Purple);
+                    timer.Dispose();
+                });
+            };
+            WaitThenSendMessage();
 
             string json = null;
             if(File.Exists(DiscardItemDataPath))

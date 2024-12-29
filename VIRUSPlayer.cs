@@ -1,5 +1,6 @@
 using Terraria.ModLoader;
 using Terraria;
+using Terraria.ID;
 
 namespace VIRUS
 {
@@ -9,7 +10,7 @@ namespace VIRUS
 
         public override void OnEnterWorld(Player player)
         {
-            if(Main.dedServ)
+            if(Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = VIRUS.instance.GetPacket();
                 packet.Write((byte)MessageType.CheckInventory);
@@ -19,11 +20,11 @@ namespace VIRUS
 
         public override void PostUpdate()
         {
-            if(Main.dedServ)
+            if(Main.netMode == NetmodeID.MultiplayerClient)
             {
-                if(oldInventory.name == "uninitialized") oldInventory = new(Main.LocalPlayer);
-                Network.UpdateInventory(Main.LocalPlayer, oldInventory, MessageType.UpdateItem, out PlayerInventory newInventory);
-                oldInventory = newInventory;
+                if(oldInventory.name == "uninitialized")
+                    oldInventory = new(Main.LocalPlayer);
+                Network.UpdateInventory(Main.LocalPlayer, oldInventory, MessageType.UpdateItem, out oldInventory);
             }
         }
     }
