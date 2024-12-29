@@ -4,27 +4,18 @@ using System;
 using System.IO;
 using System.Linq;
 using Terraria;
-using VIRUS.Services;
+using VIRUS.UI;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria.ModLoader;
 
-namespace VIRUS.Services
+namespace VIRUS.UI
 {
 	internal class PlayerList : VIRUSService
 	{
 		public static CurrentPlayersWindow playersWindow;
 
-		public PlayerList()
-		{
-			MultiplayerOnly = true;
-			this._name = "Player List";
-			this._hotbarIcon = new UIImage(VIRUS.instance.Assets.Request<Texture2D>("Images/connectedPlayers", AssetRequestMode.ImmediateLoad));
-			this._hotbarIcon.onLeftClick += _hotbarIcon_onLeftClick;
-			this.HotbarIcon.Tooltip = "";
-		}
-
-		private void _hotbarIcon_onLeftClick(object sender, EventArgs e)
+		public void TogglePlayerList()
 		{
 			if (playersWindow == null)
 			{
@@ -43,14 +34,14 @@ namespace VIRUS.Services
 			playersWindow = null;
 		}
 
-		public override void MyGroupUpdated()
-		{
-			if (!HasPermissionToUse)
-			{
-				if (playersWindow != null)
-					playersWindow.Close();
-			}
-		}
+		// public override void MyGroupUpdated()
+		// {
+		// 	if (!HasPermissionToUse)
+		// 	{
+		// 		if (playersWindow != null)
+		// 			playersWindow.Close();
+		// 	}
+		// }
 
 		public override void Destroy()
 		{

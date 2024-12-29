@@ -7,31 +7,15 @@ using Terraria.UI;
 namespace VIRUS.UI
 {
 	[Autoload(Side = ModSide.Client)]
-	public class MenuBarSystem : ModSystem
+	public class VIRUSModSystem : ModSystem
 	{
-		internal MenuBar MenuBar;
+		internal PlayerList PlayerList;
 		private UserInterface _menuBar;
-
-		public void ShowPlayerList()
-		{
-			_menuBar.SetState(MenuBar);
-		}
-		public void HidePlayerList()
-		{
-			_menuBar.SetState(null);
-		}
-		public void TogglePlayerList()
-		{
-			if(_menuBar.CurrentState == null)
-				ShowPlayerList();
-			else
-				HidePlayerList();
-		}
 
         public override void Load()
         {
-            MenuBar = new MenuBar();
-			MenuBar.Activate();
+            PlayerList = new PlayerList();
+			PlayerList.Activate();
 			_menuBar = new UserInterface();
 			_menuBar.SetState(null);
         }

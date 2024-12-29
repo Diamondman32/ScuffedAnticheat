@@ -3,7 +3,7 @@ using VIRUS.UIKit.UIComponents;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
-namespace VIRUS.Services
+namespace VIRUS.UI
 {
 	internal class VIRUSService
 	{
