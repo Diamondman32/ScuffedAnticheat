@@ -1,4 +1,5 @@
 using Terraria.ModLoader;
+using Terraria;
 
 namespace VIRUS
 {

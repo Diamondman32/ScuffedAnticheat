@@ -2,11 +2,7 @@ using Terraria.ModLoader;
 using System.IO;
 using Terraria;
 using Terraria.ID;
-using ReLogic.Content;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using Terraria.GameContent;
-// using VIRUS.UI;
+using VIRUS.Network;
 
 namespace VIRUS
 {
@@ -14,6 +10,7 @@ namespace VIRUS
 	{
 		public static VIRUS instance;
 
+        // Runs after all mods are loaded. If HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
         public override void PostSetupContent()
         {
             if(ModLoader.TryGetMod("HerosMod", out Mod herosMod))
@@ -30,6 +27,7 @@ namespace VIRUS
             }
         }
 
+        // On mod load, get an instance to use for creating packets and create save directory
         public override void Load()
         {
 			instance = this;
@@ -40,7 +38,7 @@ namespace VIRUS
         }
         public override void HandlePacket(BinaryReader reader, int whoAmI)
 		{
-            Network.VIRUSMessaged(reader, whoAmI);
+            VIRUSNetwork.HandlePacket(reader, whoAmI);
 		}
     }
 }
