@@ -6,7 +6,7 @@ using ReLogic.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria.GameContent;
-using VIRUS.UI;
+// using VIRUS.UI;
 
 namespace VIRUS
 {
@@ -19,14 +19,14 @@ namespace VIRUS
             if(ModLoader.TryGetMod("HerosMod", out Mod herosMod))
             {
                 // Add a permission
-                string permissionName = "RecoverItemsFromVoid";
-                herosMod.Call("AddPermission", permissionName, "Recover Items From Void", null);
-                // Add a button
-                Asset<Texture2D> texture = TextureAssets.Trash;
-                Action buttonClicked = () => {ModContent.GetInstance<MenuBarSystem>().TogglePlayerList();};
-                Action<bool> groupUpdated = (bool b) => {};
-                Func<string> tooltip = () => {return "This is a tooltip, obviously.";};
-                herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
+                // string permissionName = "RecoverItemsFromVoid";
+                // herosMod.Call("AddPermission", permissionName, "Recover Items From Void", null);
+                // // Add a button
+                // Asset<Texture2D> texture = TextureAssets.Trash;
+                // Action buttonClicked = () => {ModContent.GetInstance<MenuBarSystem>().TogglePlayerList();};
+                // Action<bool> groupUpdated = (bool b) => {};
+                // Func<string> tooltip = () => {return "This is a tooltip, obviously.";};
+                // herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
             }
         }
 
