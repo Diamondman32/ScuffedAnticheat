@@ -1,9 +1,9 @@
 using Terraria.ModLoader;
 using Terraria;
 using Terraria.ID;
-using SAM.Network;
+using ScuffedAnticheatMod.Network;
 
-namespace SAM
+namespace ScuffedAnticheatMod
 {
     public class SAMPlayer : ModPlayer
 	{
@@ -14,7 +14,7 @@ namespace SAM
         {
             if(Main.netMode == NetmodeID.MultiplayerClient)
             {
-                var packet = SAM.instance.GetPacket();
+                var packet = ScuffedAnticheatMod.instance.GetPacket();
                 packet.Write((byte)MessageType.CheckMyInventory);
                 packet.Send(255); // Send to server
             }

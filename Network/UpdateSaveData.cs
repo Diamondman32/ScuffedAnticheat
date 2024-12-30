@@ -3,7 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Terraria;
 
-namespace SAM.Network
+namespace ScuffedAnticheatMod.Network
 {
     public class UpdateSaveData : SAMNetwork
     {

@@ -1,7 +1,7 @@
 using System.IO;
 using Terraria;
 
-namespace SAM.Network
+namespace ScuffedAnticheatMod.Network
 {
     public class ModifyPlayerData : SAMNetwork
     {

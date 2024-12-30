@@ -11,7 +11,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace SAM.UI
+namespace ScuffedAnticheatMod.UI
 {
     class PlayerWindow : UIState
     {

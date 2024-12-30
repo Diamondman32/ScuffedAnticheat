@@ -4,7 +4,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
 
-namespace SAM.Network
+namespace ScuffedAnticheatMod.Network
 {
     // Enums
     public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem }
@@ -191,7 +191,7 @@ namespace SAM.Network
         public static void SendPacket(Player player, MessageType type, ItemCategory category, int index, EzItem newItem, bool toServer=false)
         {
             // Create packet
-            var packet = SAM.instance.GetPacket();
+            var packet = ScuffedAnticheatMod.instance.GetPacket();
 
             // Add relevant identifiers
             packet.Write((byte)type);

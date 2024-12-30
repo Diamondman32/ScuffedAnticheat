@@ -10,7 +10,7 @@ using Terraria.Chat;
 using Terraria.ID;
 using Terraria.Localization;
 
-namespace SAM.Network
+namespace ScuffedAnticheatMod.Network
 {
     public class CheckInventory : SAMNetwork
     {

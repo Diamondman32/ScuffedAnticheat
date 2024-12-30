@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 using Terraria;
 
-namespace SAM
+namespace ScuffedAnticheatMod
 {
 	// public class TogglePlayerList : ModCommand
 	// {

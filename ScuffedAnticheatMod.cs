@@ -2,13 +2,13 @@ using Terraria.ModLoader;
 using System.IO;
 using Terraria;
 using Terraria.ID;
-using SAM.Network;
+using ScuffedAnticheatMod.Network;
 
-namespace SAM
+namespace ScuffedAnticheatMod
 {
-    public class SAM : Mod
+    public class ScuffedAnticheatMod : Mod
 	{
-		public static SAM instance;
+		public static ScuffedAnticheatMod instance;
 
         // Runs after all mods are loaded. If HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
         public override void PostSetupContent()

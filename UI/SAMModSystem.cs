@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace SAM.UI
+namespace ScuffedAnticheatMod.UI
 {
 	[Autoload(Side = ModSide.Client)]
 	public class MenuBarSystem : ModSystem
