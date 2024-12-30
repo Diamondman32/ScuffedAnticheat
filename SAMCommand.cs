@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 using Terraria;
 
-namespace VIRUS
+namespace SAM
 {
 	// public class TogglePlayerList : ModCommand
 	// {

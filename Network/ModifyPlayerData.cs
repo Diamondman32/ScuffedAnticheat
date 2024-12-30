@@ -1,9 +1,9 @@
 using System.IO;
 using Terraria;
 
-namespace VIRUS.Network
+namespace SAM.Network
 {
-    public class ModifyPlayerData : VIRUSNetwork
+    public class ModifyPlayerData : SAMNetwork
     {
         // Receives packets and replaces designated item with the correct item
         public static void ProcessModifyItem(ref BinaryReader reader)

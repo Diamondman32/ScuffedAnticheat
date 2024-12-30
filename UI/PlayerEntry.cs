@@ -11,7 +11,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace VIRUS.UI
+namespace SAM.UI
 {
     public class PlayerEntry : UIPanel
     {

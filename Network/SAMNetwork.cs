@@ -1,17 +1,10 @@
 using System.IO;
-using System.Collections.Generic;
 using Terraria;
-using Microsoft.Xna.Framework;
-using Terraria.Chat;
-using Terraria.Localization;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
-using System;
-using System.Threading;
 
-namespace VIRUS.Network
+namespace SAM.Network
 {
     // Enums
     public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem }
@@ -150,7 +143,7 @@ namespace VIRUS.Network
         }
     }
 
-    public class VIRUSNetwork
+    public class SAMNetwork
     {
         public static string CharacterDataPath { get; } = string.Concat(new object[]
                 {
@@ -170,7 +163,6 @@ namespace VIRUS.Network
         // Sorts SAM messages based off of their message type
         public static void HandlePacket(BinaryReader reader, int playerNumber)
 		{
-            //We found a VIRUS only message
             MessageType msgType = (MessageType)reader.ReadByte();
             switch(msgType)
             {
@@ -199,7 +191,7 @@ namespace VIRUS.Network
         public static void SendPacket(Player player, MessageType type, ItemCategory category, int index, EzItem newItem, bool toServer=false)
         {
             // Create packet
-            var packet = VIRUS.instance.GetPacket();
+            var packet = SAM.instance.GetPacket();
 
             // Add relevant identifiers
             packet.Write((byte)type);

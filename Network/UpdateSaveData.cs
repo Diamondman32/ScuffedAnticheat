@@ -3,9 +3,9 @@ using System.IO;
 using Newtonsoft.Json;
 using Terraria;
 
-namespace VIRUS.Network
+namespace SAM.Network
 {
-    public class UpdateSaveData : VIRUSNetwork
+    public class UpdateSaveData : SAMNetwork
     {
         // Reads incoming UpdateSaveData packets and updates save data accordingly
         public static void ProcessUpdateInventory(ref BinaryReader reader)

@@ -1,11 +1,11 @@
 using Terraria.ModLoader;
 using Terraria;
 using Terraria.ID;
-using VIRUS.Network;
+using SAM.Network;
 
-namespace VIRUS
+namespace SAM
 {
-    public class VIRUSPlayer : ModPlayer
+    public class SAMPlayer : ModPlayer
 	{
         public PlayerInventory oldInventory = new("uninitialized");
 
@@ -14,7 +14,7 @@ namespace VIRUS
         {
             if(Main.netMode == NetmodeID.MultiplayerClient)
             {
-                var packet = VIRUS.instance.GetPacket();
+                var packet = SAM.instance.GetPacket();
                 packet.Write((byte)MessageType.CheckMyInventory);
                 packet.Send(255); // Send to server
             }

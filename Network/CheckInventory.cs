@@ -10,9 +10,9 @@ using Terraria.Chat;
 using Terraria.ID;
 using Terraria.Localization;
 
-namespace VIRUS.Network
+namespace SAM.Network
 {
-    public class CheckInventory : VIRUSNetwork
+    public class CheckInventory : SAMNetwork
     {
         // Checks entire inventory against json save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
         public static void ProcessCheckInventory(int playerNumber)

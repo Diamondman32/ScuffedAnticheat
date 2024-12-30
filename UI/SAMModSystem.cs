@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace VIRUS.UI
+namespace SAM.UI
 {
 	[Autoload(Side = ModSide.Client)]
 	public class MenuBarSystem : ModSystem
