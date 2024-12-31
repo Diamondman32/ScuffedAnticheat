@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem }
+    public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash }
 
     // Structs
@@ -174,6 +174,15 @@ namespace ScuffedAnticheatMod.Network
                     break;
                 case MessageType.ReplaceItem:
                     ModifyPlayerData.ProcessModifyItem(ref reader);
+                    break;
+                case MessageType.DeletedItemRequest:
+                    RequestDeletedItems.ProcessDeletedItemRequest(ref reader);
+                    break;
+                case MessageType.DeletedItemResponse:
+                    DeletedItemReponse.ProcessResponse(ref reader);
+                    break;
+                case MessageType.UpdateDeletedItemSaveData:
+                    UpdateDeletedItemSaveData.ProcessUpdateItemSaveData(ref reader);
                     break;
             }
 		}
