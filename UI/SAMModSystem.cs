@@ -7,7 +7,7 @@ using Terraria.UI;
 namespace ScuffedAnticheatMod.UI
 {
 	[Autoload(Side = ModSide.Client)]
-	public class MenuBarSystem : ModSystem
+	public class SAMModSystem : ModSystem
 	{
 		internal PlayerWindow playerWindow;
 		private UserInterface _playerWindow;
@@ -15,7 +15,10 @@ namespace ScuffedAnticheatMod.UI
 		public void TogglePlayerList()
 		{
 			if(_playerWindow.CurrentState == null)
+			{
+				// playerWindow = new PlayerWindow();
 				_playerWindow.SetState(playerWindow);
+			}
 			else
 				_playerWindow.SetState(null);
 		}

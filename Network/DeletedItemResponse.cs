@@ -21,5 +21,9 @@ namespace ScuffedAnticheatMod.Network
 
             deletedItems = deletedItemsTemp;
         }
+        public static void ResetItemArray()
+        {
+            deletedItems = null;
+        }
     }
 }

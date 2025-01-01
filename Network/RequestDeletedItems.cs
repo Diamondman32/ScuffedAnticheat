@@ -49,5 +49,14 @@ namespace ScuffedAnticheatMod.Network
                 File.Create(DiscardItemDataPath);
             return yeah;
         }
+        public static void AskNicelyForPlayersDeletedItems(int targetPlayerNum)
+        {
+            DeletedItemReponse.ResetItemArray();
+            var packet = ScuffedAnticheatMod.instance.GetPacket();
+            packet.Write((byte)MessageType.DeletedItemRequest);
+            packet.Write((byte)Main.myPlayer);
+            packet.Write((byte)targetPlayerNum);
+            packet.Send(255); // To server
+        }
     }
 }

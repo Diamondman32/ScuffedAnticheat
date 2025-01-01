@@ -15,7 +15,9 @@ namespace ScuffedAnticheatMod.UI
 {
     public class PlayerEntry : UIPanel
     {
+		public UIText text;
 		private Player player;
+		public Player GetPlayer() { return player; }
 		public PlayerEntry(Player player)
 		{
 			this.player = player;
@@ -23,20 +25,15 @@ namespace ScuffedAnticheatMod.UI
 
         public override void OnInitialize()
         {
-            base.OnInitialize();
+            text = new UIText(player.name, 1f);
+			text.Left.Set(0f, 0.2f);
+			text.Top.Set(0f, 0f);
+			Append(text);
         }
-        public override void Update(GameTime gameTime) {
-			base.Update(gameTime);
-
-			// This causes clicks on this UIElement to not cause the player to use current items
-			if (ContainsPoint(Main.MouseScreen)) {
-				Main.LocalPlayer.mouseInterface = true;
-			}
-		}
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-			Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, new Vector2(0,0), 1f, 0.8f, Color.White);
-			// Draw(spriteBatch);
-        }
+        // public override void Draw(SpriteBatch spriteBatch)
+        // {
+		// 	// Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, new Vector2(0,0), 1f, 0.8f, Color.White);
+		// 	// Draw(spriteBatch);
+        // }
     }
 }
