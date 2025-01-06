@@ -29,7 +29,7 @@ namespace ScuffedAnticheatMod.UI
         {
 			// Item Slots
 			uiItemSlots = new();
-			Item[] items = Network.DeletedItemReponse.GetDeletedItems().ToArray();
+			Item[] items = Network.DeletedItemReponse.targetDeletedItems.ToArray();
 
 			for(int i = 0; i < items.Length; i++)
 			{

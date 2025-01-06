@@ -1,14 +1,12 @@
 using Terraria.ModLoader;
 using System.IO;
 using Terraria;
-using Terraria.ID;
 using ScuffedAnticheatMod.Network;
 using ReLogic.Content;
 using Terraria.GameContent;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using ScuffedAnticheatMod.UI;
-using System.Reflection;
 
 namespace ScuffedAnticheatMod
 {
@@ -37,9 +35,14 @@ namespace ScuffedAnticheatMod
         public override void Load()
         {
 			instance = this;
-            if(Main.netMode == NetmodeID.Server)
+            Directory.CreateDirectory(Main.SavePath);
+            if(!Main.dedServ && !Guid.HasKey())
             {
-                Directory.CreateDirectory(Main.SavePath);
+                Guid.CreateKey(); // Maybe use steam id and resort to guid if unavailible
+            }
+            else if(Main.dedServ)
+            {
+                SAMNetwork.DeserializeAll();
             }
         }
         public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -52,6 +55,9 @@ namespace ScuffedAnticheatMod
 // TODO:
 // Investigate unique identifiers for players
 // Add per-world support in data 
+// Check world data when swapping from origin world
+
+// Error: Makes tons of dupe Playerinventoriers without guids ("uninitialized") and alongside a null one
 
 //  Side Projects:
 //  Consider tracking and updating player position
