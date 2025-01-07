@@ -1,6 +1,7 @@
 using Terraria.ModLoader;
+using Terraria;
 
-namespace VIRUS
+namespace ScuffedAnticheatMod
 {
 	public class TogglePlayerList : ModCommand
 	{
@@ -17,7 +18,8 @@ namespace VIRUS
 			=> "Toggles Player List";
 
 		public override void Action(CommandCaller caller, string input, string[] args) {
-			ModContent.GetInstance<UI.MenuBarSystem>().TogglePlayerList();
+			// ModContent.GetInstance<UI.SAMModSystem>().TogglePlayerList();
+			Main.LocalPlayer.ToggleInv();
 		}
 	}
 }

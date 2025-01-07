@@ -4,24 +4,35 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace VIRUS.UI
+namespace ScuffedAnticheatMod.UI
 {
 	[Autoload(Side = ModSide.Client)]
-	public class VIRUSModSystem : ModSystem
+	public class SAMModSystem : ModSystem
 	{
-		internal PlayerList PlayerList;
-		private UserInterface _menuBar;
+		internal PlayerWindow playerWindow;
+		private UserInterface _playerWindow;
+
+		public void TogglePlayerList()
+		{
+			if(_playerWindow.CurrentState == null)
+			{
+				// playerWindow = new PlayerWindow();
+				_playerWindow.SetState(playerWindow);
+			}
+			else
+				_playerWindow.SetState(null);
+		}
 
         public override void Load()
         {
-            PlayerList = new PlayerList();
-			PlayerList.Activate();
-			_menuBar = new UserInterface();
-			_menuBar.SetState(null);
+            playerWindow = new PlayerWindow();
+			playerWindow.Activate();
+			_playerWindow = new UserInterface();
+			_playerWindow.SetState(null);
         }
         public override void UpdateUI(GameTime gameTime)
         {
-            _menuBar?.Update(gameTime);
+            _playerWindow?.Update(gameTime);
         }
 		public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
 		{
@@ -32,7 +43,7 @@ namespace VIRUS.UI
 					"ScuffedAnticheat: UI",
 					delegate
 					{
-						_menuBar.Draw(Main.spriteBatch, new GameTime());
+						_playerWindow.Draw(Main.spriteBatch, new GameTime());
 						return true;
 					},
 					InterfaceScaleType.UI)
