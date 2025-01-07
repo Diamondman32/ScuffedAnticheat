@@ -272,12 +272,13 @@ namespace ScuffedAnticheatMod.Network
                 using StreamReader r = new(path);
                 json = r.ReadToEnd();
                 r.Close();
+
+                int startIndex = json.IndexOf('[');
+                if(startIndex != -1)
+                    json = json.Substring(startIndex, json.LastIndexOf(']') - startIndex + 1);
             }
 
-            int startIndex = json.IndexOf('[');
-            json = json.Substring(startIndex, json.LastIndexOf(']') - startIndex + 1);
-
-            return string.IsNullOrEmpty(json) ? new List<T>() : JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>();
+            return string.IsNullOrEmpty(json) ? new List<T>() : JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>(); // the null case doesnt work
         }
 
         public static void IsAnythingNull()

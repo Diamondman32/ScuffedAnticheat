@@ -177,7 +177,8 @@ namespace ScuffedAnticheatMod.Network
                 deletedItems.Add(new DeletedItem(item, player.name, guids[player.whoAmI]));
                 message += $"{player.name}'s {item.itemName} broke causality and has left our plane of existance.\n";
             }
-            message = message.Remove(message.Length - 1);
+            if(message.EndsWith('\n'))
+                message = message.Remove(message.Length - 1);
 
             string json = JsonConvert.SerializeObject(deletedItems);
             using StreamWriter outputFile = new(DiscardItemDataPath);
