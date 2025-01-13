@@ -26,7 +26,7 @@ namespace ScuffedAnticheatMod
                 Asset<Texture2D> texture = TextureAssets.Trash;
                 Action buttonClicked = () => {ModContent.GetInstance<SAMModSystem>().TogglePlayerList();};
                 Action<bool> groupUpdated = (bool b) => {};
-                Func<string> tooltip = () => {return "This is a tooltip, obviously.";};
+                Func<string> tooltip = () => {return "Deleted Items";};
                 herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
             }
         }

@@ -175,7 +175,7 @@ namespace ScuffedAnticheatMod.Network
                     continue;
 
                 deletedItems.Add(new DeletedItem(item, player.name, guids[player.whoAmI]));
-                message += $"{player.name}'s {item.itemName} broke causality and has left our plane of existance.\n";
+                message += $"{player.name}'s {item.itemName} broke causality and has been seized by local authorites.\n";
             }
             if(message.EndsWith('\n'))
                 message = message.Remove(message.Length - 1);

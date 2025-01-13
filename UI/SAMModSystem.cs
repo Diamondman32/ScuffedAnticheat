@@ -9,14 +9,13 @@ namespace ScuffedAnticheatMod.UI
 	[Autoload(Side = ModSide.Client)]
 	public class SAMModSystem : ModSystem
 	{
-		internal PlayerWindow playerWindow;
+		internal ItemRecoveryUI playerWindow;
 		private UserInterface _playerWindow;
 
 		public void TogglePlayerList()
 		{
 			if(_playerWindow.CurrentState == null)
 			{
-				// playerWindow = new PlayerWindow();
 				_playerWindow.SetState(playerWindow);
 			}
 			else
@@ -25,7 +24,7 @@ namespace ScuffedAnticheatMod.UI
 
         public override void Load()
         {
-            playerWindow = new PlayerWindow();
+            playerWindow = new ItemRecoveryUI();
 			playerWindow.Activate();
 			_playerWindow = new UserInterface();
 			_playerWindow.SetState(null);

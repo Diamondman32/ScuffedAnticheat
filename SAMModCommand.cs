@@ -1,5 +1,7 @@
 using Terraria.ModLoader;
 using Terraria;
+using Terraria.ID;
+using Microsoft.Xna.Framework;
 
 namespace ScuffedAnticheatMod
 {
@@ -18,8 +20,10 @@ namespace ScuffedAnticheatMod
 			=> "Toggles Player List";
 
 		public override void Action(CommandCaller caller, string input, string[] args) {
-			// ModContent.GetInstance<UI.SAMModSystem>().TogglePlayerList();
-			Main.LocalPlayer.ToggleInv();
+			if(Main.netMode == NetmodeID.MultiplayerClient)
+				ModContent.GetInstance<UI.SAMModSystem>().TogglePlayerList();
+			else
+				Main.NewText("Only available in multiplayer", Color.Red);
 		}
 	}
 }
