@@ -27,5 +27,11 @@ namespace ScuffedAnticheatMod.Network
             targetDeletedItems.Clear();
             itemsReceived = false;
         }
+
+        // Remove element from array
+        public static void RemoveElement(Item item)
+        {
+            targetDeletedItems.Remove(item);
+        }
     }
 }

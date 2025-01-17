@@ -239,6 +239,13 @@ public class UIColorList : UIElement, IEnumerable<UIElement>, IEnumerable
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
-        PlayerInput.LockVanillaMouseScroll("ModLoader/UIList");
+        PlayerInput.LockVanillaMouseScroll("ScuffedAnticheat/UIColorList");
     }
+
+    public override void Update(GameTime gameTime)
+	{
+		base.Update(gameTime);
+		if (IsMouseHovering)
+			PlayerInput.LockVanillaMouseScroll("ModLoader/UIList");
+	}
 }

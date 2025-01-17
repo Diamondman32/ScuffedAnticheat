@@ -1,21 +1,44 @@
 using System.IO;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader.IO;
+
 
 namespace ScuffedAnticheatMod.Network
 {
     public class ModifyPlayerData : SAMNetwork
     {
-            /* CLIENT */
+            /* CLIENT & SERVER */
         // Receives packets and replaces designated item with the correct item
+        // IF NETMODEID IS SERVER, FORWARD TO TARGET CLIENT
         public static void ProcessModifyItem(ref BinaryReader reader)
         {
-            ItemCategory itemCategory = (ItemCategory)reader.ReadByte();
-            int itemIndex = reader.ReadByte();
-            Item newItem = Terraria.ModLoader.IO.ItemIO.Receive(reader, true, true);
+            // SERVER
+            if(Main.netMode == NetmodeID.Server)
+            {
+                int targetNum = reader.ReadByte();
 
-            // So hover item isn't lost
-            if(itemCategory == ItemCategory.Inventory && itemIndex == 58)
-                Main.LocalPlayer.ToggleInv();
+                var packet = ScuffedAnticheatMod.instance.GetPacket();
+                packet.Write((byte)MessageType.ReplaceItem);
+
+                byte category = reader.ReadByte();
+                packet.Write(category);
+                if((ItemCategory)category != ItemCategory.FindFirstOpenInv)
+                    packet.Write(reader.ReadByte());
+
+                ItemIO.Send(ItemIO.Receive(reader, true, true), packet, true, true);
+                packet.Send(targetNum);
+                return;
+            }
+
+            // CLIENT
+            ItemCategory itemCategory = (ItemCategory)reader.ReadByte();
+
+            int itemIndex = 10000;
+            if(itemCategory != ItemCategory.FindFirstOpenInv)
+                itemIndex = reader.ReadByte();
+            
+            Item newItem = ItemIO.Receive(reader, true, true);
 
             switch(itemCategory)
             {
@@ -49,7 +72,24 @@ namespace ScuffedAnticheatMod.Network
                 case ItemCategory.Trash:
                     Main.LocalPlayer.trashItem = newItem;
                     break;
+                case ItemCategory.FindFirstOpenInv:
+                    ReplaceFirstOpenSlot(newItem);
+                    break;
             }
+        }
+
+        /* CLIENT */
+        public static void ReplaceFirstOpenSlot(Item newItem)
+        {
+            for(int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
+                if(Main.LocalPlayer.inventory[i].IsAir)
+                {
+                    Main.LocalPlayer.inventory[i] = newItem;
+                    return;
+                }
+            
+            // Inventory is full :( so drop on ground
+            Main.LocalPlayer.QuickSpawnItem(newItem.GetSource_Misc("inv full"), newItem);
         }
     }
 }

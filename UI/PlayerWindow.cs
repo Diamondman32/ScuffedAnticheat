@@ -1,29 +1,27 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using ScuffedAnticheatMod.UI.UIHelpers;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
-using Terraria.UI.Chat;
 
 namespace ScuffedAnticheatMod.UI
 {
     class PlayerWindow : UIPanelNoClickthrough
     {
-        private UIPanel panel;
-        private UIUnderline underline;
-        private UIColorScrollbar scrollBar;
         private UIColorList playerList;
-        private UIText text;
         private List<PlayerEntry> playerEntries;
-        public static DeletedItemWindow deletedItemWindow;
+        public DeletedItemWindow deletedItemWindow;
         private Player selected;
         private Player hovering;
 
+        public PlayerWindow()
+        {
+            Init();
+        }
+
         // Initializes element and its children
-        public void Init()
+        private void Init()
         {
             // Player Window
             BackgroundColor = new Color(0, 100, 0) * 0.5f;
@@ -34,19 +32,15 @@ namespace ScuffedAnticheatMod.UI
             SetPadding(0);
 
             // Text
-            const string textString = "Player List";
-            const float textScale = 1.25f;
-            float textWidth = ChatManager.GetStringSize(FontAssets.MouseText.Value, textString, new Vector2(textScale)).X;
-            text = new UIText(textString, textScale)
+            UICenteredText text = new UICenteredText("Player List", 1.25f)
             {
-                Left = StyleDimension.FromPixelsAndPercent(-textWidth/2, 0.5f),
                 Top = StyleDimension.FromPixelsAndPercent(0f, 0.025f)
             };
             text.SetPadding(0);
             Append(text);
 
             // Underline
-            underline = new UIUnderline()
+            UIUnderline underline = new UIUnderline()
             {
                 Color = new Color(255, 255, 255) * 0.7f,
                 Left = StyleDimension.FromPixelsAndPercent(0f, 0.05f),
@@ -58,7 +52,7 @@ namespace ScuffedAnticheatMod.UI
             Append(underline);
 
             // Panel for List and Scrollbar shading
-            panel = new UIPanel()
+            UIPanel panel = new UIPanel()
             {
                 BackgroundColor = new Color(255, 255, 255) * 0.04f,
                 BorderColor = new Color(0, 0, 0) * 0.4f,
@@ -71,9 +65,9 @@ namespace ScuffedAnticheatMod.UI
             Append(panel);
 
             // Scroll Bar
-            scrollBar = new UIColorScrollbar()
+            UIColorScrollbar scrollBar = new UIColorScrollbar()
             {
-                borderAndBackgroundColor = new Color(255, 255, 255) * 0.05f,
+                borderAndBackgroundColor = new Color(0, 100, 0) * 0.3f,
                 PaddingLeft = 0,
                 PaddingRight = 0,
                 Top = StyleDimension.FromPixelsAndPercent(0f, 0.05f),
@@ -133,7 +127,7 @@ namespace ScuffedAnticheatMod.UI
         {
             PlayerEntry playerEntry = (PlayerEntry)element;
 
-            Player prevselected = selected;
+            Player prevSelected = selected;
             selected = playerEntry.player;
 
             // Player not listed
@@ -142,17 +136,13 @@ namespace ScuffedAnticheatMod.UI
 
             if(!Parent.HasChild(deletedItemWindow))
             {
-                Network.RequestDeletedItems.AskNicelyForPlayersDeletedItems(selected.whoAmI);
                 deletedItemWindow = new DeletedItemWindow(selected);
-                deletedItemWindow.Init();
                 Parent.Append(deletedItemWindow);
             }
-            else if(prevselected != selected)
+            else if(prevSelected != selected)
             {
                 Parent.RemoveChild(deletedItemWindow);
-                Network.RequestDeletedItems.AskNicelyForPlayersDeletedItems(selected.whoAmI);
                 deletedItemWindow = new DeletedItemWindow(selected);
-                deletedItemWindow.Init();
                 Parent.Append(deletedItemWindow);
             }
             else
@@ -190,11 +180,11 @@ namespace ScuffedAnticheatMod.UI
             if(Parent.HasChild(deletedItemWindow))
                 Parent.RemoveChild(deletedItemWindow);
             selected = null;
+            hovering = null;
         }
     }
     public class PlayerEntry : UIPanel
     {
-		private UIText text;
 		public Player player { get; private set; }
 		public PlayerEntry(Player player)
 		{
@@ -203,15 +193,11 @@ namespace ScuffedAnticheatMod.UI
 
         public void Init()
         {
-            text = new UIText(player.name, 1f);
-			text.Left.Set(0f, 0.1f);
-			text.Top.Set(0f, 0.25f);
+            UICenteredText text = new UICenteredText(player.name, 1f)
+            {
+                Left = new StyleDimension(0f, 0.1f)
+            };
 			Append(text);
-        }
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-            base.Draw(spriteBatch);
-			// Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, new Vector2(0,0));
         }
     }
 }

@@ -1,13 +1,28 @@
+using System;
 using Microsoft.Xna.Framework;
+using ScuffedAnticheatMod.Network;
 using ScuffedAnticheatMod.UI.UIHelpers;
+using Terraria;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 using Terraria.UI;
 
 namespace ScuffedAnticheatMod.UI
 {
     public class ConfirmationPanel : UIPanel
     {
-        public void Init()
+        private readonly int targetNum;
+        private readonly Item item;
+        private readonly Action HideConfirmation;
+        public ConfirmationPanel(int targetNum, Item item, Action HideConfirmation)
+        {
+            this.targetNum = targetNum;
+            this.item = item;
+            this.HideConfirmation = HideConfirmation;
+            Init();
+        }
+
+        private void Init()
         {
             BackgroundColor = new Color(255, 255, 255) * 0.04f;
             BorderColor = new Color(0, 0, 0) * 0.4f;
@@ -16,6 +31,14 @@ namespace ScuffedAnticheatMod.UI
             Width = StyleDimension.FromPixelsAndPercent(0f, 0.95f);
             Height = StyleDimension.FromPixelsAndPercent(0f, 0.875f);
 			SetPadding(0);
+
+            // Text
+            UICenteredText text = new UICenteredText($"This will return a(n) {item.Name} to {Main.player[targetNum].name}", 1f, Color.DarkRed)
+            {
+                Top = StyleDimension.FromPixelsAndPercent(0f, 0.1f)
+            };
+            text.SetPadding(0);
+            Append(text);
 			
 			// Yes Button
 			UIPanel yesButton = new UIPanel()
@@ -27,7 +50,7 @@ namespace ScuffedAnticheatMod.UI
                 Width = StyleDimension.FromPixelsAndPercent(0f, 0.2f),
                 Height = StyleDimension.FromPixelsAndPercent(0f, 0.15f)
 			};
-			// yesButton.OnClick += itemSlotBackgrounds_onClick;
+			yesButton.OnClick += yesButton_onClick;
 			yesButton.OnMouseOver += UIPanel_onHover;
 			yesButton.OnMouseOut += UIPanel_onStopHover;
 			Append(yesButton);
@@ -46,7 +69,7 @@ namespace ScuffedAnticheatMod.UI
                 Width = StyleDimension.FromPixelsAndPercent(0f, 0.2f),
                 Height = StyleDimension.FromPixelsAndPercent(0f, 0.15f)
 			};
-			// noButton.OnClick += itemSlotBackgrounds_onClick;
+			noButton.OnClick += noButton_onClick;
 			noButton.OnMouseOver += UIPanel_onHover;
 			noButton.OnMouseOut += UIPanel_onStopHover;
 			Append(noButton);
@@ -54,6 +77,28 @@ namespace ScuffedAnticheatMod.UI
 			// Text
             UICenteredText noText = new UICenteredText("No", 1f);
             noButton.Append(noText);
+        }
+
+        private void yesButton_onClick(UIMouseEvent evt, UIElement element)
+        {
+            bool noRoom = true;
+            foreach(Item item in Main.player[targetNum].inventory)
+                if(item.type == ItemID.None)
+                    noRoom = false;
+            if(noRoom)
+            {
+                Main.NewText($"{Main.player[targetNum].name}'s inventory is full!", Color.Red);
+                return;
+            }
+
+            UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
+            DeletedItemReponse.RemoveElement(item);
+            HideConfirmation();
+        }
+
+        private void noButton_onClick(UIMouseEvent evt, UIElement element)
+        {
+            HideConfirmation();
         }
         
         private void UIPanel_onHover(UIMouseEvent evt, UIElement element)

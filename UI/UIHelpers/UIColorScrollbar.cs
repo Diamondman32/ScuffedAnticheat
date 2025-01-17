@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
 using Terraria.GameInput;
+using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace ScuffedAnticheatMod.UI.UIHelpers;
@@ -52,7 +53,7 @@ public class UIColorScrollbar : UIElement
     {
         Width.Set(20f, 0f);
         MaxWidth.Set(20f, 0f);
-        _texture = Main.Assets.Request<Texture2D>("Images/UI/Scrollbar"); // This will need to be changed to one of mine ------------------------------------------
+        _texture = ModContent.Request<Texture2D>("ScuffedAnticheatMod/Images/Scrollbar", AssetRequestMode.ImmediateLoad);
         _innerTexture = Main.Assets.Request<Texture2D>("Images/UI/ScrollbarInner");
         PaddingTop = 5f;
         PaddingBottom = 5f;
@@ -137,6 +138,6 @@ public class UIColorScrollbar : UIElement
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
-        PlayerInput.LockVanillaMouseScroll("ModLoader/UIScrollbar");
+        PlayerInput.LockVanillaMouseScroll("ScuffedAnticheat/UIColorScrollbar");
     }
 }

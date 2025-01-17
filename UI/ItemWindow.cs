@@ -7,10 +7,7 @@ using Terraria;
 using Terraria.GameContent.UI.Elements;
 using ScuffedAnticheatMod.Network;
 using Terraria.UI;
-using Terraria.UI.Chat;
-using Terraria.GameContent;
 using ScuffedAnticheatMod.UI.UIHelpers;
-using System.Linq;
 
 namespace ScuffedAnticheatMod.UI
 {
@@ -18,20 +15,23 @@ namespace ScuffedAnticheatMod.UI
     {
 		public Player player { get; private set; }
 		private UIColorList itemList;
-		private static List<UIItemSlot> uiItemSlots;
-		private static List<UIPanel> itemSlotBackgrounds;
-		private static List<UIPanel> itemSlotRows;
+		private List<UIItemSlot> uiItemSlots;
+		private List<UIPanel> itemSlotBackgrounds;
+		private List<UIPanel> itemSlotRows;
 		private UIPanel itemListPanel;
 		private UIPanel confirmationPanel;
 		private Item selectedItem;
+		private const int maxItemsInRow = 8;
+
 
 		public DeletedItemWindow(Player player)
 		{
 			this.player = player;
+			Init();
 		}
 
 		// Is called on panel creation
-		public void Init()
+		private void Init()
 		{
 			// Panel positioning
 			BackgroundColor = new Color(0, 100, 0) * 0.5f;
@@ -53,14 +53,11 @@ namespace ScuffedAnticheatMod.UI
 			Append(itemListPanel);
 
 			// Text
-			const string textString = "Deleted Items (Click to return)";
-            const float textScale = 1.25f;
-            float textWidth = ChatManager.GetStringSize(FontAssets.MouseText.Value, textString, new Vector2(textScale)).X;
-            UIText text = new UIText(textString, textScale)
+			UICenteredText text = new UICenteredText("Stolen Items (Click to Return)", 1.25f)
             {
-                Left = StyleDimension.FromPixelsAndPercent(-textWidth/2, 0.5f),
                 Top = StyleDimension.FromPixelsAndPercent(0f, 0.025f)
             };
+            text.SetPadding(0);
             itemListPanel.Append(text);
 
 			// Underline
@@ -91,7 +88,7 @@ namespace ScuffedAnticheatMod.UI
             // Scroll Bar
             UIColorScrollbar scrollBar = new UIColorScrollbar
             {
-                borderAndBackgroundColor = new Color(255, 255, 255) * 0.05f,
+                borderAndBackgroundColor = new Color(0, 100, 0) * 0.3f,
                 PaddingLeft = 0,
                 PaddingRight = 0,
                 Top = StyleDimension.FromPixelsAndPercent(0f, 0.05f),
@@ -120,6 +117,12 @@ namespace ScuffedAnticheatMod.UI
 		// Async code that adds items when received
 		private async void AddItems()
 		{
+			itemList.Clear();
+			uiItemSlots.Clear();
+			itemSlotBackgrounds.Clear();
+			itemSlotRows.Clear();
+			RequestDeletedItems.AskNicelyForPlayersDeletedItems(player.whoAmI);
+
 			await Task.Run(() =>
 			{
 				bool timeHasRunOut = false;
@@ -127,11 +130,10 @@ namespace ScuffedAnticheatMod.UI
 				Timer timer = new((Object stateInfo) => {}, EndTime, 10000, Timeout.Infinite);
 
 				int i = 0;
-				const int maxItemsInRow = 8;
 				List<Item> items = new List<Item>();
 
 				// check for items received status and iteration progress. Gives up after 10 secs
-				while((DeletedItemReponse.itemsReceived != true || DeletedItemReponse.targetDeletedItems.Count != i) && !timeHasRunOut)
+				while((!DeletedItemReponse.itemsReceived || DeletedItemReponse.targetDeletedItems.Count != i) && !timeHasRunOut)
 				{
 					if(i < DeletedItemReponse.targetDeletedItems.Count)
 					{
@@ -184,6 +186,11 @@ namespace ScuffedAnticheatMod.UI
 			});
 		}
 
+		public void RefreshItemList()
+		{
+			AddItems();
+		}
+
 		private void itemSlotBackgrounds_onClick(UIMouseEvent evt, UIElement element)
 		{
 			UIPanel panel = (UIPanel)element;
@@ -206,6 +213,7 @@ namespace ScuffedAnticheatMod.UI
 
 		private void ShowConfirmation()
 		{
+			confirmationPanel = new ConfirmationPanel(player.whoAmI, selectedItem, HideConfirmation);
 			RemoveChild(itemListPanel);
 			Append(confirmationPanel);
 		}
@@ -213,6 +221,7 @@ namespace ScuffedAnticheatMod.UI
 		private void HideConfirmation()
 		{
 			RemoveChild(confirmationPanel);
+			AddItems();
 			Append(itemListPanel);
 		}
     }

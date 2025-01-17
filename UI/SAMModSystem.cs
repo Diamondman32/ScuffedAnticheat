@@ -29,10 +29,12 @@ namespace ScuffedAnticheatMod.UI
 			_playerWindow = new UserInterface();
 			_playerWindow.SetState(null);
         }
+
         public override void UpdateUI(GameTime gameTime)
         {
             _playerWindow?.Update(gameTime);
         }
+
 		public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
 		{
 			int mouseTextIndex = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Mouse Text"));

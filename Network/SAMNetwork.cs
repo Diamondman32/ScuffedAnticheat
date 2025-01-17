@@ -10,8 +10,8 @@ using Newtonsoft.Json.Linq;
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData }
-    public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash }
+    public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData, SyncDeletedItems }
+    public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
     public class EzItem
@@ -201,7 +201,7 @@ namespace ScuffedAnticheatMod.Network
         public static List<PlayerInventory> playerInventories { get; protected set; }
         public static List<DeletedItem> deletedItems { get; protected set; }
 
-        // Sorts SAM messages based off of their message type
+        // Sorts SAM packets based off of their message type
         public static void HandlePacket(BinaryReader reader, int playerNumber)
 		{
             MessageType msgType = (MessageType)reader.ReadByte();
@@ -225,16 +225,16 @@ namespace ScuffedAnticheatMod.Network
                 case MessageType.UpdateDeletedItemSaveData:
                     UpdateDeletedItemSaveData.ProcessUpdateItemSaveData(ref reader, playerNumber);
                     break;
+                case MessageType.SyncDeletedItems:
+                    SyncDeletedItems.ProcessSync();
+                    break;
             }
 		}
 
         // Evaluates item equality based off of type, prefix, and stack
         protected static bool IsIdentical(EzItem item1, EzItem item2)
         {
-            if(item1.type == item2.type && item1.prefix == item2.prefix && item1.stack == item2.stack)
-                return true;
-            else
-                return false;
+            return item1.type == item2.type && item1.prefix == item2.prefix && item1.stack == item2.stack;
         }
 
         // Searches all saved player inventories with matching identifiers. Returns new inventory if not found and adds newInv to array

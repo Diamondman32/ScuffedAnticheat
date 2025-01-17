@@ -5,13 +5,12 @@ namespace ScuffedAnticheatMod.UI
 {
     class ItemRecoveryUI : UIState
     {
-        private PlayerWindow playerWindow;
-        private static int lastTime = 5;
+        public PlayerWindow playerWindow;
+        private int lastTime = 5;
 
         public override void OnInitialize()
         {
             playerWindow = new PlayerWindow();
-            playerWindow.Init();
             Append(playerWindow);
         }
         public override void OnActivate()
@@ -35,8 +34,6 @@ namespace ScuffedAnticheatMod.UI
     }
 }
 // TODO:
-// Add Hover border color on items
-// Push underline down
-// Impl for item returning
-// add color from items to player entries
-// Block scrollbar from scrolling hotbar when hovering over list
+// Impl for item returning - BROKEN
+// Refresh ditem list when returning item or at least remove item
+// Fix / Beautify / Expand confirmation panel
