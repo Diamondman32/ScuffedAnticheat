@@ -25,10 +25,10 @@ namespace ScuffedAnticheatMod.UI
         {
             // Player Window
             BackgroundColor = new Color(0, 100, 0) * 0.5f;
-            Left.Set(0f, 0.30f);
-			Top.Set(0f, 0.30f);
-			Width.Set(0f, 0.20f);
-			Height.Set(0f, 0.40f);
+            Left = StyleDimension.FromPixelsAndPercent(0f, 0.30f);
+			Top = StyleDimension.FromPixelsAndPercent(0f, 0.30f);
+			Width = StyleDimension.FromPixelsAndPercent(0f, 0.20f);
+			Height = StyleDimension.FromPixelsAndPercent(0f, 0.40f);
             SetPadding(0);
 
             // Text

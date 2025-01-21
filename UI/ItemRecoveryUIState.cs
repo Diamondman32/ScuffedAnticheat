@@ -34,6 +34,8 @@ namespace ScuffedAnticheatMod.UI
     }
 }
 // TODO:
-// Impl for item returning - BROKEN
-// Refresh ditem list when returning item or at least remove item
+// Select multiple elements before going into confirmation panel - partial
+// Add sounds
+// i have to piss
+// 
 // Fix / Beautify / Expand confirmation panel

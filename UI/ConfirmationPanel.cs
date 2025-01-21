@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using ScuffedAnticheatMod.Network;
 using ScuffedAnticheatMod.UI.UIHelpers;
@@ -12,12 +13,12 @@ namespace ScuffedAnticheatMod.UI
     public class ConfirmationPanel : UIPanel
     {
         private readonly int targetNum;
-        private readonly Item item;
+        private readonly List<Item> items;
         private readonly Action HideConfirmation;
-        public ConfirmationPanel(int targetNum, Item item, Action HideConfirmation)
+        public ConfirmationPanel(int targetNum, List<Item> items, Action HideConfirmation)
         {
             this.targetNum = targetNum;
-            this.item = item;
+            this.items = items;
             this.HideConfirmation = HideConfirmation;
             Init();
         }
@@ -33,13 +34,13 @@ namespace ScuffedAnticheatMod.UI
 			SetPadding(0);
 
             // Text
-            UICenteredText text = new UICenteredText($"This will return a(n) {item.Name} to {Main.player[targetNum].name}", 1f, Color.DarkRed)
-            {
-                Top = StyleDimension.FromPixelsAndPercent(0f, 0.1f)
-            };
-            text.SetPadding(0);
-            Append(text);
-			
+            // UICenteredText text = new UICenteredText($"This will return a(n) {items.Name} to {Main.player[targetNum].name}", 1f, Color.DarkRed)
+            // {
+            //     Top = StyleDimension.FromPixelsAndPercent(0f, 0.1f)
+            // };
+            // text.SetPadding(0);
+            // Append(text);
+
 			// Yes Button
 			UIPanel yesButton = new UIPanel()
 			{
@@ -79,28 +80,40 @@ namespace ScuffedAnticheatMod.UI
             noButton.Append(noText);
         }
 
-        private void yesButton_onClick(UIMouseEvent evt, UIElement element)
+        private int FindRemainingInvSlots()
         {
-            bool noRoom = true;
+            int openSlots = 0;
             foreach(Item item in Main.player[targetNum].inventory)
                 if(item.type == ItemID.None)
-                    noRoom = false;
-            if(noRoom)
-            {
-                Main.NewText($"{Main.player[targetNum].name}'s inventory is full!", Color.Red);
-                return;
-            }
+                    openSlots++;
+            return openSlots;
+        }
 
-            UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
-            DeletedItemReponse.RemoveElement(item);
-            HideConfirmation();
+        private void yesButton_onClick(UIMouseEvent evt, UIElement element)
+        {
+            int openSlots = FindRemainingInvSlots();
+            int i = 0;
+            foreach(Item item in items)
+            {
+                if(i < openSlots)
+                {
+                    UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
+                    DeletedItemReponse.RemoveElement(item);
+                    i++;
+                }
+                else
+                {
+                    Main.NewText($"{Main.player[targetNum].name}'s inventory is full!", Color.Red);
+                    break;
+                }
+            }
         }
 
         private void noButton_onClick(UIMouseEvent evt, UIElement element)
         {
             HideConfirmation();
         }
-        
+
         private void UIPanel_onHover(UIMouseEvent evt, UIElement element)
         {
             UIPanel itemBackground = (UIPanel)element;

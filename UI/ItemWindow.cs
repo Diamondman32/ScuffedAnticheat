@@ -20,9 +20,9 @@ namespace ScuffedAnticheatMod.UI
 		private List<UIPanel> itemSlotRows;
 		private UIPanel itemListPanel;
 		private UIPanel confirmationPanel;
-		private Item selectedItem;
+		private UIPanel confirmationButton;
+		private List<Item> selectedItems;
 		private const int maxItemsInRow = 8;
-
 
 		public DeletedItemWindow(Player player)
 		{
@@ -35,10 +35,10 @@ namespace ScuffedAnticheatMod.UI
 		{
 			// Panel positioning
 			BackgroundColor = new Color(0, 100, 0) * 0.5f;
-            Left.Set(0f, 0.50f);
-            Top.Set(0f, 0.30f);
-            Width.Set(0f, 0.20f);
-            Height.Set(0f, 0.40f);
+            Left = StyleDimension.FromPixelsAndPercent(0f, 0.50f);
+            Top = StyleDimension.FromPixelsAndPercent(0f, 0.30f);
+            Width = StyleDimension.FromPixelsAndPercent(0f, 0.20f);
+            Height = StyleDimension.FromPixelsAndPercent(0f, 0.40f);
 			SetPadding(0);
 
 			// Item List Panel
@@ -85,15 +85,31 @@ namespace ScuffedAnticheatMod.UI
             panel.SetPadding(0);
             itemListPanel.Append(panel);
 
+			// Confirmation Button
+			confirmationButton = new UIPanel()
+			{
+				BackgroundColor = new Color(0, 0, 0) * 0.5f,
+				BorderColor = new Color(0, 0, 0) * 0.7f,
+				Left = StyleDimension.FromPixelsAndPercent(0f, 0.1f),
+                Top = StyleDimension.FromPixelsAndPercent(0f, 0.015f),
+				Width = StyleDimension.FromPixelsAndPercent(0f, 0.8f),
+                Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
+			};
+			confirmationButton.SetPadding(0);
+			confirmationButton.OnClick += confirmationPanel_onClick;
+			confirmationButton.OnMouseOver += UIPanel_onHover;
+			confirmationButton.OnMouseOut += UIPanel_onStopHover;
+			itemListPanel.Append(confirmationButton);
+
             // Scroll Bar
             UIColorScrollbar scrollBar = new UIColorScrollbar
             {
                 borderAndBackgroundColor = new Color(0, 100, 0) * 0.3f,
                 PaddingLeft = 0,
                 PaddingRight = 0,
-                Top = StyleDimension.FromPixelsAndPercent(0f, 0.05f),
+                Top = StyleDimension.FromPixelsAndPercent(40f, 0.05f),
                 Left = StyleDimension.FromPixelsAndPercent(-25f, 1f),
-                Height = StyleDimension.FromPixelsAndPercent(0f, 0.9f)
+                Height = StyleDimension.FromPixelsAndPercent(-40f, 0.9f)
             };
             panel.Append(scrollBar);
 
@@ -101,12 +117,13 @@ namespace ScuffedAnticheatMod.UI
             uiItemSlots = new List<UIItemSlot>();
 			itemSlotBackgrounds = new List<UIPanel>();
 			itemSlotRows = new List<UIPanel>();
+			selectedItems = new List<Item>();
             itemList = new UIColorList()
 			{
 				Left = StyleDimension.FromPixelsAndPercent(0f, 0.015f),
-                Top = StyleDimension.FromPixelsAndPercent(0f, 0.015f),
+                Top = StyleDimension.FromPixelsAndPercent(40f, 0.015f),
 				Width = StyleDimension.FromPixelsAndPercent(-25f, 0.975f),
-                Height = StyleDimension.FromPixelsAndPercent(0f, 0.985f)
+                Height = StyleDimension.FromPixelsAndPercent(-40f, 0.985f)
 			};
 			itemList.SetPadding(0);
             itemList.SetScrollbar(scrollBar);
@@ -162,8 +179,8 @@ namespace ScuffedAnticheatMod.UI
 						});
 						itemSlotBackgrounds[i].SetPadding(0);
 						itemSlotBackgrounds[^1].OnClick += itemSlotBackgrounds_onClick;
-						itemSlotBackgrounds[i].OnMouseOver += itemSlotBackgrounds_onHover;
-                		itemSlotBackgrounds[i].OnMouseOut += itemSlotBackgrounds_onStopHover;
+						itemSlotBackgrounds[i].OnMouseOver += UIPanel_onHover;
+                		itemSlotBackgrounds[i].OnMouseOut += UIPanel_onStopHover;
 						itemSlotRows[^1].Append(itemSlotBackgrounds[i]);
 
 						// Items
@@ -191,29 +208,56 @@ namespace ScuffedAnticheatMod.UI
 			AddItems();
 		}
 
-		private void itemSlotBackgrounds_onClick(UIMouseEvent evt, UIElement element)
+		private void confirmationPanel_onClick(UIMouseEvent evt, UIElement element)
 		{
 			UIPanel panel = (UIPanel)element;
-			int itemIndex = itemSlotBackgrounds.FindIndex(x => x == panel);
-			selectedItem = DeletedItemReponse.targetDeletedItems[itemIndex];
+			panel.BorderColor = new Color(0, 0, 0) * 0.7f;
 			ShowConfirmation();
 		}
 
-		private void itemSlotBackgrounds_onHover(UIMouseEvent evt, UIElement element)
+		private void itemSlotBackgrounds_onClick(UIMouseEvent evt, UIElement element)
+		{
+			UIPanel panel = (UIPanel)element;
+			List<Item> items = DeletedItemReponse.targetDeletedItems;
+
+			int itemIndex = itemSlotBackgrounds.FindIndex(x => x == panel);
+			int itemSelectedIndex = selectedItems.FindIndex(x => x == items[itemIndex]);
+
+			if(itemSelectedIndex != -1)
+			{
+				panel.BorderColor = new Color(255, 255, 255) * 0.35f;
+				selectedItems.Add(items[itemIndex]);
+			}
+			else
+			{
+				panel.BorderColor = new Color(0, 0, 0) * 0.7f;
+				selectedItems.RemoveAt(itemSelectedIndex);
+			}
+		}
+
+		private void UIPanel_onHover(UIMouseEvent evt, UIElement element)
         {
-            UIPanel itemBackground = (UIPanel)element;
-            itemBackground.BorderColor = new Color(255, 255, 255) * 0.35f;
+            UIPanel panel = (UIPanel)element;
+			int itemIndex = itemSlotBackgrounds.FindIndex(x => x == panel);
+			int itemSelectedIndex = selectedItems.FindIndex(x => x == DeletedItemReponse.targetDeletedItems[itemIndex]);
+
+			if(itemSelectedIndex == -1)
+				panel.BorderColor = new Color(255, 255, 255) * 0.35f;
         }
 
-        private void itemSlotBackgrounds_onStopHover(UIMouseEvent evt, UIElement element)
+        private void UIPanel_onStopHover(UIMouseEvent evt, UIElement element)
         {
-            UIPanel itemBackground = (UIPanel)element;
-            itemBackground.BorderColor = new Color(0, 0, 0) * 0.7f;
+			UIPanel panel = (UIPanel)element;
+			int itemIndex = itemSlotBackgrounds.FindIndex(x => x == panel);
+			int itemSelectedIndex = selectedItems.FindIndex(x => x == DeletedItemReponse.targetDeletedItems[itemIndex]);
+
+			if(itemSelectedIndex == -1)
+				panel.BorderColor = new Color(0, 0, 0) * 0.7f;
         }
 
 		private void ShowConfirmation()
 		{
-			confirmationPanel = new ConfirmationPanel(player.whoAmI, selectedItem, HideConfirmation);
+			confirmationPanel = new ConfirmationPanel(player.whoAmI, selectedItems, HideConfirmation);
 			RemoveChild(itemListPanel);
 			Append(confirmationPanel);
 		}
