@@ -33,9 +33,3 @@ namespace ScuffedAnticheatMod.UI
         }
     }
 }
-// TODO:
-// Select multiple elements before going into confirmation panel - partial
-// Add sounds
-// i have to piss
-// 
-// Fix / Beautify / Expand confirmation panel

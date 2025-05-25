@@ -61,4 +61,3 @@ namespace ScuffedAnticheatMod
 
 //  Side Projects:
 //  Consider tracking and updating player position
-//  Add an integrated in-game menu that can access "deleted" items <--
