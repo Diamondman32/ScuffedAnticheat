@@ -7,15 +7,15 @@ using Terraria.UI;
 
 namespace ScuffedAnticheatMod.UI
 {
-    class PlayerWindow : UIPanelNoClickthrough
+    class PlayerListWindow : UIPanelNoClickthrough
     {
         private UIColorList playerList;
         private List<PlayerEntry> playerEntries;
-        public DeletedItemWindow deletedItemWindow;
+        public PlayerItemWindow playerItemWindow;
         private Player selected;
         private Player hovering;
 
-        public PlayerWindow()
+        public PlayerListWindow()
         {
             Init();
         }
@@ -93,9 +93,9 @@ namespace ScuffedAnticheatMod.UI
         // Refreshes player list
         public void UpdatePlayerList()
         {
-            // If selected of deletedItemWindow left the game then close window
-            if(Parent.HasChild(deletedItemWindow) && (!selected?.active ?? false))
-                Parent.RemoveChild(deletedItemWindow);
+            // If selected of PlayerItemWindow left the game then close window
+            if(Parent.HasChild(playerItemWindow) && (!selected?.active ?? false))
+                Parent.RemoveChild(playerItemWindow);
 
             // Reset List
             playerEntries.Clear();
@@ -134,20 +134,20 @@ namespace ScuffedAnticheatMod.UI
             if(selected.active == false)
                 return;
 
-            if(!Parent.HasChild(deletedItemWindow))
+            if(!Parent.HasChild(playerItemWindow))
             {
-                deletedItemWindow = new DeletedItemWindow(selected);
-                Parent.Append(deletedItemWindow);
+                playerItemWindow = new PlayerItemWindow(selected);
+                Parent.Append(playerItemWindow);
             }
             else if(prevSelected != selected)
             {
-                Parent.RemoveChild(deletedItemWindow);
-                deletedItemWindow = new DeletedItemWindow(selected);
-                Parent.Append(deletedItemWindow);
+                Parent.RemoveChild(playerItemWindow);
+                playerItemWindow = new PlayerItemWindow(selected);
+                Parent.Append(playerItemWindow);
             }
             else
             {
-                Parent.RemoveChild(deletedItemWindow);
+                Parent.RemoveChild(playerItemWindow);
                 selected = null;
             }
 
@@ -177,8 +177,8 @@ namespace ScuffedAnticheatMod.UI
 
         public void Reset()
         {
-            if(Parent.HasChild(deletedItemWindow))
-                Parent.RemoveChild(deletedItemWindow);
+            if(Parent.HasChild(playerItemWindow))
+                Parent.RemoveChild(playerItemWindow);
             selected = null;
             hovering = null;
         }

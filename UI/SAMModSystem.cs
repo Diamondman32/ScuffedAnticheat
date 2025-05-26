@@ -9,30 +9,30 @@ namespace ScuffedAnticheatMod.UI
 	[Autoload(Side = ModSide.Client)]
 	public class SAMModSystem : ModSystem
 	{
-		internal ItemRecoveryUI playerWindow;
-		private UserInterface _playerWindow;
+		internal ItemRecoveryUI playerListWindow;
+		private UserInterface _playerListWindow;
 
 		public void TogglePlayerList()
 		{
-			if(_playerWindow.CurrentState == null)
+			if(_playerListWindow.CurrentState == null)
 			{
-				_playerWindow.SetState(playerWindow);
+				_playerListWindow.SetState(playerListWindow);
 			}
 			else
-				_playerWindow.SetState(null);
+				_playerListWindow.SetState(null);
 		}
 
         public override void Load()
         {
-            playerWindow = new ItemRecoveryUI();
-			playerWindow.Activate();
-			_playerWindow = new UserInterface();
-			_playerWindow.SetState(null);
+            playerListWindow = new ItemRecoveryUI();
+			playerListWindow.Activate();
+			_playerListWindow = new UserInterface();
+			_playerListWindow.SetState(null);
         }
 
         public override void UpdateUI(GameTime gameTime)
         {
-            _playerWindow?.Update(gameTime);
+            _playerListWindow?.Update(gameTime);
         }
 
 		public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
@@ -44,7 +44,7 @@ namespace ScuffedAnticheatMod.UI
 					"ScuffedAnticheat: UI",
 					delegate
 					{
-						_playerWindow.Draw(Main.spriteBatch, new GameTime());
+						_playerListWindow.Draw(Main.spriteBatch, new GameTime());
 						return true;
 					},
 					InterfaceScaleType.UI)

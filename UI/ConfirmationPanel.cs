@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using ScuffedAnticheatMod.Network;
 using ScuffedAnticheatMod.UI.UIHelpers;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
-using System.Threading;
 
 namespace ScuffedAnticheatMod.UI
 {
@@ -19,9 +17,8 @@ namespace ScuffedAnticheatMod.UI
         private readonly List<Item> items;
         private readonly Action<bool> HideConfirmation;
         private UIColorList itemList;
-		private List<UIItemSlot> uiItemSlots;
-		private List<UIPanel> itemSlotBackgrounds;
-		private List<UIPanel> itemSlotRows;
+        private const int MAX_ITEMS_IN_ROW = PlayerItemWindow.MAX_ITEMS_IN_ROW;
+
         public ConfirmationPanel(int targetNum, bool returnItems, List<Item> items, Action<bool> HideConfirmation)
         {
             this.targetNum = targetNum;
@@ -112,9 +109,6 @@ namespace ScuffedAnticheatMod.UI
             panel.Append(scrollBar);
 
             // Selected Items List
-            uiItemSlots = new List<UIItemSlot>();
-			itemSlotBackgrounds = new List<UIPanel>();
-			itemSlotRows = new List<UIPanel>();
             itemList = new UIColorList()
 			{
 				Left = StyleDimension.FromPixelsAndPercent(0f, 0.015f),
@@ -131,17 +125,16 @@ namespace ScuffedAnticheatMod.UI
         // Async code that adds items when received
 		private void AddSelectedItems()
 		{
+            List<UIItemSlot> uiItemSlots = new List<UIItemSlot>();
+			List<UIPanel> itemSlotBackgrounds = new List<UIPanel>();
+			List<UIPanel> itemSlotRows = new List<UIPanel>();
 			itemList.Clear();
-			uiItemSlots.Clear();
-			itemSlotBackgrounds.Clear();
-			itemSlotRows.Clear();
-
             int i = 0;
 
             foreach (Item item in items)
             {
                 // Item Rows
-                if (itemSlotBackgrounds.Count / DeletedItemWindow.MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
+                if (itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
                 {
                     itemSlotRows.Add(new UIPanel()
                     {
@@ -159,7 +152,7 @@ namespace ScuffedAnticheatMod.UI
                 {
                     BackgroundColor = new Color(0, 0, 0) * 0.5f,
                     BorderColor = new Color(255, 255, 255) * 0.35f,
-                    Left = StyleDimension.FromPixelsAndPercent(0f, 1f / DeletedItemWindow.MAX_ITEMS_IN_ROW * (i % DeletedItemWindow.MAX_ITEMS_IN_ROW)),
+                    Left = StyleDimension.FromPixelsAndPercent(0f, 1f / MAX_ITEMS_IN_ROW * (i % MAX_ITEMS_IN_ROW)),
                     Width = StyleDimension.FromPixelsAndPercent(40f, 0f),
                     Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
                 });

@@ -12,7 +12,7 @@ namespace ScuffedAnticheatMod
         private static string FileHeader { get; } =
             "Note: If this key is lost, the server will not be able to identify your player and your server-side player data will not be accessible."
             + Environment.NewLine
-            + "If this happens, the server host will have to go into AnticheatCharacterData.json, find your character, and send you your key so you can replace the key below."
+            + "To recover your server-side character, the server host will have to go into AnticheatCharacterData.json on the host machine, find your character, and send you your old key so you can replace the key below."
             + Environment.NewLine
             + "If you delete this file and join a world with this mod enabled the file will auto-regenerate."
             + Environment.NewLine

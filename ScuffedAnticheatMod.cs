@@ -53,7 +53,6 @@ namespace ScuffedAnticheatMod
 }
 
 // TODO:
-// Investigate unique identifiers for players
 // Add per-world support in data 
 // Check world data when swapping from origin world
 

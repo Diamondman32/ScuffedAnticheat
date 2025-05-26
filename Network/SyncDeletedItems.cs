@@ -8,7 +8,7 @@ namespace ScuffedAnticheatMod.Network
         // Refreshes item list UI
         public static void ProcessSync()
         {
-            ModContent.GetInstance<UI.SAMModSystem>()?.playerWindow?.playerWindow?.deletedItemWindow?.RefreshItemList();
+            ModContent.GetInstance<UI.SAMModSystem>()?.playerListWindow?.playerListWindow?.playerItemWindow?.itemListPanel?.RefreshItemList();
         }
 
             /* SERVER */

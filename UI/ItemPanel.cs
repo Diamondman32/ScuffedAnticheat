@@ -11,19 +11,17 @@ using ScuffedAnticheatMod.UI.UIHelpers;
 
 namespace ScuffedAnticheatMod.UI
 {
-    public class DeletedItemWindow : UIPanelNoClickthrough
+    public class ItemPanel : UIPanelNoClickthrough
     {
-		public Player player { get; private set; }
-		private UIColorList itemList;
-		private List<UIItemSlot> uiItemSlots;
-		private List<UIPanel> itemSlotBackgrounds;
-		private List<UIPanel> itemSlotRows;
-		private static UIPanel itemListPanel;
+		private UIElement parent;
+		private readonly Player player;
+		private static UIColorList itemList;
+		private static List<UIPanel> itemSlotBackgrounds;
 		private static UIPanel confirmationPanel;
 		private static List<bool> selectedItemMap;
-		public const int MAX_ITEMS_IN_ROW = 8;
+		private const int MAX_ITEMS_IN_ROW = PlayerItemWindow.MAX_ITEMS_IN_ROW;
 
-		public DeletedItemWindow(Player player)
+		public ItemPanel(Player player)
 		{
 			this.player = player;
 			Init();
@@ -32,24 +30,12 @@ namespace ScuffedAnticheatMod.UI
 		// Is called on panel creation
 		private void Init()
 		{
-			// Panel positioning
-			BackgroundColor = new Color(0, 100, 0) * 0.5f;
-            Left = StyleDimension.FromPixelsAndPercent(0f, 0.50f);
-            Top = StyleDimension.FromPixelsAndPercent(0f, 0.30f);
-            Width = StyleDimension.FromPixelsAndPercent(0f, 0.20f);
-            Height = StyleDimension.FromPixelsAndPercent(0f, 0.40f);
+			parent = null;
+			BackgroundColor = Color.Transparent;
+            BorderColor = Color.Transparent;
+            Width = StyleDimension.FromPixelsAndPercent(0f, 1f);
+            Height = StyleDimension.FromPixelsAndPercent(0f, 1f);
 			SetPadding(0);
-
-			// Item List Panel
-			itemListPanel = new UIPanel()
-			{
-				BackgroundColor = Color.Transparent,
-                BorderColor = Color.Transparent,
-                Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-                Height = StyleDimension.FromPixelsAndPercent(0f, 1f)
-			};
-			itemListPanel.SetPadding(0);
-			Append(itemListPanel);
 
 			// Text
 			UICenteredText text1 = new UICenteredText("Confiscated Items", 1.25f)
@@ -57,7 +43,7 @@ namespace ScuffedAnticheatMod.UI
                 Top = StyleDimension.FromPixelsAndPercent(0f, 0.025f)
             };
             text1.SetPadding(0);
-            itemListPanel.Append(text1);
+            Append(text1);
 
 			// Underline
             UIUnderline underline = new UIUnderline()
@@ -69,7 +55,7 @@ namespace ScuffedAnticheatMod.UI
                 Height = StyleDimension.FromPixelsAndPercent(5f, 0f)
             };
             underline.SetPadding(0);
-            itemListPanel.Append(underline);
+            Append(underline);
 			
 			// Button for selected all items
 			UIPanel selectAllButton = new UIPanel()
@@ -85,7 +71,7 @@ namespace ScuffedAnticheatMod.UI
 			selectAllButton.OnClick += selectAll_onClick;
 			selectAllButton.OnMouseOver += UIPanel_onHover;
 			selectAllButton.OnMouseOut += UIPanel_onStopHover;
-			itemListPanel.Append(selectAllButton);
+			Append(selectAllButton);
 
 			// ^ Button Text
 			UICenteredText text2 = new UICenteredText("Select All", 0.75f)
@@ -109,7 +95,7 @@ namespace ScuffedAnticheatMod.UI
 			returnItemsButton.OnClick += returnItems_onClick;
 			returnItemsButton.OnMouseOver += UIPanel_onHover;
 			returnItemsButton.OnMouseOut += UIPanel_onStopHover;
-			itemListPanel.Append(returnItemsButton);
+			Append(returnItemsButton);
 
 			// ^ Button Text
 			UICenteredText text3 = new UICenteredText("Return Selected", 0.75f)
@@ -133,7 +119,7 @@ namespace ScuffedAnticheatMod.UI
 			removeItemsButton.OnClick += removeItems_onClick;
 			removeItemsButton.OnMouseOver += UIPanel_onHover;
 			removeItemsButton.OnMouseOut += UIPanel_onStopHover;
-			itemListPanel.Append(removeItemsButton);
+			Append(removeItemsButton);
 
 			// ^ Button Text
 			UICenteredText text4 = new UICenteredText("Remove Selected", 0.75f)
@@ -154,7 +140,7 @@ namespace ScuffedAnticheatMod.UI
                 Height = StyleDimension.FromPixelsAndPercent(-40f, 0.875f)
             };
             panel.SetPadding(0);
-            itemListPanel.Append(panel);
+            Append(panel);
 
             // Scroll Bar
 			UIColorScrollbar scrollBar = new UIColorScrollbar
@@ -169,9 +155,6 @@ namespace ScuffedAnticheatMod.UI
             panel.Append(scrollBar);
 
             // Item List
-            uiItemSlots = new List<UIItemSlot>();
-			itemSlotBackgrounds = new List<UIPanel>();
-			itemSlotRows = new List<UIPanel>();
 			selectedItemMap = new List<bool>();
             itemList = new UIColorList()
 			{
@@ -182,6 +165,7 @@ namespace ScuffedAnticheatMod.UI
 			};
 			itemList.SetPadding(0);
             itemList.SetScrollbar(scrollBar);
+			itemSlotBackgrounds = new List<UIPanel>();
 			AddItems();
 			panel.Append(itemList);
 		}
@@ -189,28 +173,29 @@ namespace ScuffedAnticheatMod.UI
 		// Async code that adds items when received
 		private async void AddItems()
 		{
-			itemList.Clear();
-			uiItemSlots.Clear();
-			itemSlotBackgrounds.Clear();
-			itemSlotRows.Clear();
 			RequestDeletedItems.AskNicelyForPlayersDeletedItems(player.whoAmI);
+
+			List<UIItemSlot> uiItemSlots = new List<UIItemSlot>();
+			List<UIPanel> itemSlotRows = new List<UIPanel>();
+			itemSlotBackgrounds.Clear();
+			itemList.Clear();
 
 			await Task.Run(() =>
 			{
 				bool timeHasRunOut = false;
 				var EndTime = (bool b) => timeHasRunOut = true;
-				Timer timer = new((Object stateInfo) => {}, EndTime, 10000, Timeout.Infinite);
+				Timer timer = new((Object stateInfo) => { }, EndTime, 10000, Timeout.Infinite);
 
 				int i = 0;
 				List<Item> items = new List<Item>();
 
 				// check for items received status and iteration progress. Gives up after 10 secs
-				while((!DeletedItemReponse.itemsReceived || DeletedItemReponse.targetDeletedItems.Count != i) && !timeHasRunOut)
+				while ((!DeletedItemReponse.itemsReceived || DeletedItemReponse.targetDeletedItems.Count != i) && !timeHasRunOut)
 				{
-					if(i < DeletedItemReponse.targetDeletedItems.Count)
+					if (i < DeletedItemReponse.targetDeletedItems.Count)
 					{
 						// Item Rows
-						if(itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
+						if (itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
 						{
 							itemSlotRows.Add(new UIPanel()
 							{
@@ -232,14 +217,14 @@ namespace ScuffedAnticheatMod.UI
 						{
 							BackgroundColor = new Color(0, 0, 0) * 0.5f,
 							BorderColor = selectedItemMap[i] ? new Color(255, 255, 255) * 0.7f : new Color(0, 0, 0) * 0.7f,
-							Left = StyleDimension.FromPixelsAndPercent(0f, 1f/MAX_ITEMS_IN_ROW*(i%MAX_ITEMS_IN_ROW)), 
+							Left = StyleDimension.FromPixelsAndPercent(0f, 1f / MAX_ITEMS_IN_ROW * (i % MAX_ITEMS_IN_ROW)),
 							Width = StyleDimension.FromPixelsAndPercent(40f, 0f),
 							Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
 						});
 						itemSlotBackgrounds[i].SetPadding(0);
 						itemSlotBackgrounds[^1].OnClick += itemSlotBackgrounds_onClick;
 						itemSlotBackgrounds[i].OnMouseOver += itemSlotBackgrounds_onHover;
-                		itemSlotBackgrounds[i].OnMouseOut += itemSlotBackgrounds_onStopHover;
+						itemSlotBackgrounds[i].OnMouseOut += itemSlotBackgrounds_onStopHover;
 						itemSlotRows[^1].Append(itemSlotBackgrounds[i]);
 
 						// Items
@@ -257,7 +242,7 @@ namespace ScuffedAnticheatMod.UI
 				}
 
 				timer.Dispose();
-				if(timeHasRunOut)
+				if (timeHasRunOut)
 					Main.NewText("Item searching timed out", Color.Red);
 			});
 		}
@@ -344,6 +329,8 @@ namespace ScuffedAnticheatMod.UI
 
 		private void ShowConfirmation(bool returnItems)
 		{
+			parent ??= Parent;
+
 			List<Item> selectedItems = new();
 			for (int i = 0; i < selectedItemMap.Count; i++)
 			{
@@ -351,8 +338,8 @@ namespace ScuffedAnticheatMod.UI
 					selectedItems.Add(DeletedItemReponse.targetDeletedItems[i]);
 			}
 			confirmationPanel = new ConfirmationPanel(player.whoAmI, returnItems, selectedItems, HideConfirmation);
-			RemoveChild(itemListPanel);
-			Append(confirmationPanel);
+			parent?.RemoveChild(this);
+			parent?.Append(confirmationPanel);
 		}
 
 		private void HideConfirmation(bool status)
@@ -360,9 +347,9 @@ namespace ScuffedAnticheatMod.UI
 			if (status)
 				selectedItemMap.Clear();
 
-			RemoveChild(confirmationPanel);
+			parent?.RemoveChild(confirmationPanel);
 			AddItems();
-			Append(itemListPanel);
+			parent?.Append(this);
 		}
     }
 }

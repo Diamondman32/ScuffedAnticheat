@@ -5,21 +5,21 @@ namespace ScuffedAnticheatMod.UI
 {
     class ItemRecoveryUI : UIState
     {
-        public PlayerWindow playerWindow;
+        public PlayerListWindow playerListWindow;
         private int lastTime = 5;
 
         public override void OnInitialize()
         {
-            playerWindow = new PlayerWindow();
-            Append(playerWindow);
+            playerListWindow = new PlayerListWindow();
+            Append(playerListWindow);
         }
         public override void OnActivate()
         {
-            playerWindow.UpdatePlayerList();
+            playerListWindow.UpdatePlayerList();
         }
         public override void OnDeactivate()
         {
-            playerWindow.Reset();
+            playerListWindow.Reset();
         }
         public override void Update(GameTime gameTime)
         {
@@ -28,7 +28,7 @@ namespace ScuffedAnticheatMod.UI
             // Updates twice a second
             int curTime = gameTime.TotalGameTime.Milliseconds;
             if((curTime >= 500 && lastTime < 500) || (curTime < 500 && lastTime >= 500))
-                playerWindow.UpdatePlayerList();
+                playerListWindow.UpdatePlayerList();
             lastTime = gameTime.TotalGameTime.Milliseconds;
         }
     }
