@@ -183,20 +183,30 @@ namespace ScuffedAnticheatMod.UI
 
         private void yesButton_onClick(UIMouseEvent evt, UIElement element)
         {
-            int openSlots = FindRemainingInvSlots();
-            int i = 0;
-            foreach (Item item in items)
+            if (returnItems)
             {
-                if (i <= openSlots)
+                int openSlots = FindRemainingInvSlots();
+                int i = 0;
+                foreach (Item item in items)
                 {
-                    UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
-                    DeletedItemReponse.RemoveElement(item);
-                    i++;
+                    if (i <= openSlots)
+                    {
+                        UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
+                        DeletedItemReponse.RemoveElement(item);
+                        i++;
+                    }
+                    else
+                    {
+                        Main.NewText($"{Main.player[targetNum].name}'s does not have enough inventory space! Returned {i}/{items.Count} items", Color.Red);
+                        break;
+                    }
                 }
-                else
+            }
+            else
+            {
+                foreach (Item item in items)
                 {
-                    Main.NewText($"{Main.player[targetNum].name}'s does not have enough inventory space! Returned {i}/{items.Count} items", Color.Red);
-                    break;
+                    DeletedItemReponse.RemoveElement(item);
                 }
             }
             HideConfirmation(true);
