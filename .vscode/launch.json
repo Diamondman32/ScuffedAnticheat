@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Launch Server and Client",
+      "configurations": ["Terraria", "TerrariaServer"],
+      "preLaunchTask": "build"
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Terraria",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "dotnet",
+      "args": "tModLoader.dll",
+      "cwd": "C:/Program Files (x86)/Steam/steamapps/common/tModLoader",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "TerrariaServer",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "dotnet",
+      "args": ["tModLoader.dll", "-server", "-config", "serverconfig.txt"],
+      "cwd": "C:/Program Files (x86)/Steam/steamapps/common/tModLoader",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    }
+  ]
+}
