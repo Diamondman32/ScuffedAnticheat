@@ -4,8 +4,6 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System;
-using Newtonsoft.Json.Linq;
 
 namespace ScuffedAnticheatMod.Network
 {

@@ -10,7 +10,6 @@ using ScuffedAnticheatMod.UI;
 using System.Reflection;
 using Terraria.ModLoader.Core;
 using System.Collections.Generic;
-using Terraria.ID;
 using Microsoft.Xna.Framework;
 
 namespace ScuffedAnticheatMod
@@ -46,15 +45,15 @@ namespace ScuffedAnticheatMod
                     PropertyInfo field = typeof(Mod).GetProperty("File", BindingFlags.Instance | BindingFlags.NonPublic);
                     TmodFile file = (TmodFile)field?.GetValue(mod);
                     byte[] hash = file?.Hash;
-                    ModHashes.Add(hash);
 
-                    if (hash == null && Main.dedServ)
+                    if (hash == null)
                     {
+                        ModHashes.Add(hash);
                         modsHashedSuccessfully = false;
-                        // Main.NewText("[ScuffedAnticheatMod] Mod hashing failed. Users may not be able to join!", Color.Red);
+
+                        if (Main.dedServ)
+                            Main.NewText("[ScuffedAnticheatMod] Mod hashing failed. Users may not be able to join!", Color.Red);
                     }
-                    else if (hash == null)
-                        modsHashedSuccessfully = false;
                 }
             }
 
@@ -94,12 +93,6 @@ namespace ScuffedAnticheatMod
         }
     }
 }
-
-// TODO:
-// Add per-world support in data 
-// Check world data when swapping from origin world
-
-// Error: Makes tons of dupe Playerinventoriers without guids ("uninitialized") and alongside a null one
 
 //  Side Projects:
 //  Consider tracking and updating player position

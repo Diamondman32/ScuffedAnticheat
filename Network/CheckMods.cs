@@ -4,7 +4,6 @@ using Terraria.ID;
 using Terraria;
 using Terraria.Localization;
 using System.Collections.Generic;
-using Terraria.ModLoader;
 
 namespace ScuffedAnticheatMod.Network
 {
@@ -24,6 +23,7 @@ namespace ScuffedAnticheatMod.Network
                 packet.Write((byte)ScuffedAnticheatMod.modHashes.Count);
                 foreach (byte[] hash in ScuffedAnticheatMod.modHashes)
                 {
+                    if (hash == null) continue;
                     packet.Write((byte)hash.Length);
                     packet.Write(hash);
                 }

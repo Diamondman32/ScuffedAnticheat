@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Newtonsoft.Json;
 using Terraria;
 
 namespace ScuffedAnticheatMod
