@@ -1,0 +1,73 @@
+using System;
+using System.IO;
+using Terraria.ID;
+using Terraria;
+using Terraria.Localization;
+using System.Collections.Generic;
+using Terraria.ModLoader;
+
+namespace ScuffedAnticheatMod.Network
+{
+    public class CheckMods : SAMNetwork
+    {
+        private static List<string> serverHashList = null;
+
+        /* CLIENT */
+        // Sends a packet to server to check inventory and gives guid
+        public static void SendPacket()
+        {
+            var packet = ScuffedAnticheatMod.instance.GetPacket();
+            packet.Write((byte)MessageType.CheckMods);
+            packet.Write((byte)ScuffedAnticheatMod.modsHashedSuccessfully.ToInt());
+            if (ScuffedAnticheatMod.modsHashedSuccessfully)
+            {
+                packet.Write((byte)ScuffedAnticheatMod.modHashes.Count);
+                foreach (byte[] hash in ScuffedAnticheatMod.modHashes)
+                {
+                    packet.Write((byte)hash.Length);
+                    packet.Write(hash);
+                }
+            }
+            packet.Send(255); // Send to server
+        }
+
+        /* SERVER */
+        // Checks each user installed mod for a matching mod on the serverlist
+        public static void ProcessCheckMods(ref BinaryReader reader, int playerNumber)
+        {
+            serverHashList ??= BytesToString(ScuffedAnticheatMod.modHashes);
+
+            bool modsHashedSuccessfully = reader.ReadByte() == 1;
+            if (!modsHashedSuccessfully)
+                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Mod hashing failed"));
+
+            List<string> clientHashList = new();
+            int numMods = reader.ReadByte();
+            for (int i = 0; i < numMods; i++)
+            {
+                int numBytes = reader.ReadByte();
+                string hash = BytesToString(reader.ReadBytes(numBytes));
+                clientHashList.Add(hash);
+            }
+
+            foreach (string hash in clientHashList)
+            {
+                if (!serverHashList.Contains(hash))
+                    NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Mods are incompatible with the server. Please confirm mods with server host"));
+            }
+        }
+
+        private static string BytesToString(byte[] hashBytes)
+        {
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        }
+
+        private static List<string> BytesToString(List<byte[]> hashBytesList)
+        {
+            List<string> hashes = new();
+            foreach (byte[] hashBytes in hashBytesList)
+                hashes.Add(BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant());
+            return hashes;
+        }
+    }
+}

@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckMyInventory, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData, SyncDeletedItems }
+    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData, SyncDeletedItems }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
@@ -207,8 +207,11 @@ namespace ScuffedAnticheatMod.Network
             MessageType msgType = (MessageType)reader.ReadByte();
             switch(msgType)
             {
-                case MessageType.CheckMyInventory:
+                case MessageType.CheckInventory:
                     CheckInventory.ProcessCheckInventory(ref reader, playerNumber);
+                    break;
+                case MessageType.CheckMods:
+                    CheckMods.ProcessCheckMods(ref reader, playerNumber);
                     break;
                 case MessageType.UpdateSaveData:
                     UpdateSaveData.ProcessUpdateInventory(ref reader, playerNumber);

@@ -20,7 +20,7 @@ namespace ScuffedAnticheatMod.Network
         public static void SendPacket()
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.CheckMyInventory);
+            packet.Write((byte)MessageType.CheckInventory);
             packet.WriteNullTerminatedString(Guid.guid);
             packet.Send(255); // Send to server
         }
@@ -185,24 +185,24 @@ namespace ScuffedAnticheatMod.Network
             outputFile.WriteLine(json);
             outputFile.Close();
 
-            // Async function that waits until player join for a max of 60 seconds to send message (so msg is not sent before the player joins)
-            Func<Task> WaitThenSendMessage = async () =>
+            // Async code that waits until player join for a max of 60 seconds to send message (so msg is not sent before the player joins)
+            _ = Task.Run(async () =>
             {
-                await Task.Run(() =>
+                int timeout = 60000;
+                int interval = 1000;
+                int elapsed = 0;
+
+                while ((player == null || !player.active) && elapsed < timeout)
                 {
-                    bool timeHasRunOut = false;
-                    var EndTime = (bool b) => {timeHasRunOut = true;};
-                    Timer timer = new((Object stateInfo) => {}, EndTime, 60000, Timeout.Infinite);
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                }
 
-                    // check for player every 1 sec. Gives up after 60 secs
-                    while((player == null || player.active == false) && !timeHasRunOut) {Task.Delay(1000);}
-
-                    if(!timeHasRunOut && player != null)
-                        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), Color.Purple);
-                    timer.Dispose();
-                });
-            };
-            WaitThenSendMessage();
+                if (elapsed < timeout && player != null)
+                {
+                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), Color.Purple);
+                }
+            });
         }
 
         // Sends packet to fix client inventory item
