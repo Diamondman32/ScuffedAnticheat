@@ -13,7 +13,7 @@ namespace ScuffedAnticheatMod.Network
 {
     public class CheckInventory : SAMNetwork
     {
-            /* CLIENT */
+        /*  CLIENT  */
         // Sends a packet to server to check inventory and gives guid
         public static void SendPacket()
         {
@@ -23,9 +23,9 @@ namespace ScuffedAnticheatMod.Network
             packet.Send(255); // Send to server
         }
 
-            /* SERVER */
+        /*  SERVER  */
         // Checks entire inventory against json save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
-        public static void ProcessCheckInventory(ref BinaryReader reader, int playerNumber)
+        public static void ProcessRequest(ref BinaryReader reader, int playerNumber)
         {
             Player player = Main.player[playerNumber];
             guids[playerNumber] = reader.ReadNullTerminatedString();
@@ -207,7 +207,7 @@ namespace ScuffedAnticheatMod.Network
         protected static void SendPacket(int target, ItemCategory category, int index, EzItem newItem)
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.ReplaceItem);
+            packet.Write((byte)MessageType.ModifyPlayerData);
             packet.Write((byte)category);
             packet.Write((byte)index);
             Terraria.ModLoader.IO.ItemIO.Send(newItem.GetClone(), packet, true, true);

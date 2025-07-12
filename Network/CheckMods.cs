@@ -11,7 +11,7 @@ namespace ScuffedAnticheatMod.Network
     {
         private static List<string> serverHashList = null;
 
-            /* CLIENT */
+        /*  CLIENT  */
         // Sends a hash of all enabled mods to server
         // TODO this could potentially be sabotaged
         public static void SendPacket()
@@ -32,9 +32,9 @@ namespace ScuffedAnticheatMod.Network
             packet.Send(255); // Send to server
         }
 
-            /* SERVER */
+        /*  SERVER  */
         // Checks each user installed mod for a matching mod on the serverlist
-        public static void ProcessCheckMods(ref BinaryReader reader, int playerNumber)
+        public static void ProcessRequest(ref BinaryReader reader, int playerNumber)
         {
             serverHashList ??= BytesToString(ScuffedAnticheatMod.modHashes);
 

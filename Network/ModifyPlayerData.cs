@@ -8,10 +8,9 @@ namespace ScuffedAnticheatMod.Network
 {
     public class ModifyPlayerData : SAMNetwork
     {
-            /* CLIENT & SERVER */
         // Receives packets and replaces designated item with the correct item
-        // IF NETMODEID IS SERVER, FORWARD TO TARGET CLIENT
-        public static void ProcessModifyItem(ref BinaryReader reader)
+        // If netModeID is server, then it is forwarded to specified client
+        public static void ProcessRequest(ref BinaryReader reader)
         {
             // SERVER
             if(Main.netMode == NetmodeID.Server)
@@ -19,7 +18,7 @@ namespace ScuffedAnticheatMod.Network
                 int targetNum = reader.ReadByte();
 
                 var packet = ScuffedAnticheatMod.instance.GetPacket();
-                packet.Write((byte)MessageType.ReplaceItem);
+                packet.Write((byte)MessageType.ModifyPlayerData);
 
                 byte category = reader.ReadByte();
                 packet.Write(category);
@@ -79,16 +78,32 @@ namespace ScuffedAnticheatMod.Network
         }
 
         /* CLIENT */
+        // Sends packet with desired item to return to player
+        public static void ReturnItemToPlayer(Item item, int targetNum)
+        {
+            if (targetNum == Main.myPlayer)
+                ReplaceFirstOpenSlot(item);
+            else
+            {
+                var packet = ScuffedAnticheatMod.instance.GetPacket();
+                packet.Write((byte)MessageType.ModifyPlayerData);
+                packet.Write((byte)targetNum);
+                packet.Write((byte)ItemCategory.FindFirstOpenInv);
+                ItemIO.Send(item, packet, true, true);
+                packet.Send();
+            }
+        }
+
+        // Puts item in first air slot. If inv full drop item on ground
         public static void ReplaceFirstOpenSlot(Item newItem)
         {
-            for(int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
-                if(Main.LocalPlayer.inventory[i].IsAir)
+            for (int i = 0; i < Main.LocalPlayer.inventory.Length; i++)
+                if (Main.LocalPlayer.inventory[i].IsAir)
                 {
                     Main.LocalPlayer.inventory[i] = newItem;
                     return;
                 }
-            
-            // Inventory is full :( so drop on ground
+
             Main.LocalPlayer.QuickSpawnItem(newItem.GetSource_Misc("inv full"), newItem);
         }
     }

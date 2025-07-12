@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ReplaceItem, DeletedItemRequest, DeletedItemResponse, UpdateDeletedItemSaveData, SyncDeletedItems }
+    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems, UpdateDeletedItemSaveData, SyncDeletedItems }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
@@ -206,28 +206,28 @@ namespace ScuffedAnticheatMod.Network
             switch(msgType)
             {
                 case MessageType.CheckInventory:
-                    CheckInventory.ProcessCheckInventory(ref reader, playerNumber);
+                    CheckInventory.ProcessRequest(ref reader, playerNumber);
                     break;
                 case MessageType.CheckMods:
-                    CheckMods.ProcessCheckMods(ref reader, playerNumber);
+                    CheckMods.ProcessRequest(ref reader, playerNumber);
                     break;
                 case MessageType.UpdateSaveData:
-                    UpdateSaveData.ProcessUpdateInventory(ref reader, playerNumber);
-                    break;
-                case MessageType.ReplaceItem:
-                    ModifyPlayerData.ProcessModifyItem(ref reader);
-                    break;
-                case MessageType.DeletedItemRequest:
-                    RequestDeletedItems.ProcessDeletedItemRequest(ref reader, playerNumber);
-                    break;
-                case MessageType.DeletedItemResponse:
-                    DeletedItemReponse.ProcessResponse(ref reader);
+                    UpdateItemSaveData.ProcessRequest(ref reader, playerNumber);
                     break;
                 case MessageType.UpdateDeletedItemSaveData:
-                    UpdateDeletedItemSaveData.ProcessUpdateItemSaveData(ref reader, playerNumber);
+                    UpdateDeletedItemSaveData.ProcessRequest(ref reader, playerNumber);
+                    break;
+                case MessageType.ModifyPlayerData:
+                    ModifyPlayerData.ProcessRequest(ref reader);
+                    break;
+                case MessageType.DeletedItemRequest:
+                    RequestDeletedItems.ProcessRequest(ref reader, playerNumber);
+                    break;
+                case MessageType.ReceiveDeletedItems:
+                    ReceiveDeletedItems.ProcessRequest(ref reader);
                     break;
                 case MessageType.SyncDeletedItems:
-                    SyncDeletedItems.ProcessSync();
+                    SyncDeletedItems.ProcessRequest();
                     break;
             }
 		}
