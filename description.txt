@@ -7,4 +7,6 @@ The Scuffed Anticheat Mod enables more control over server hosting.
 - Enforce client mods match server mods
     - All mods not on the server instance are disallowed
 
-Note: This mod raises the amount of effort it takes to cheat but those with the coding know-how will likely be able to get around it...
+Notes: 
+- It is strongly encouraged that this mod is used in combination with HerosMod or something similar
+- This mod raises the amount of effort it takes to cheat but those with the coding know-how will likely be able to get around it...
