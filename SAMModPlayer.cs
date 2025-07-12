@@ -26,7 +26,7 @@ namespace ScuffedAnticheatMod
             {
                 if(oldInventory.playerName == "uninitialized")
                     oldInventory = new PlayerInventory(Main.LocalPlayer);
-                UpdateSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
+                UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
             }
         }
     }

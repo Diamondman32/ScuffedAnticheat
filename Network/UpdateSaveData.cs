@@ -192,6 +192,8 @@ namespace ScuffedAnticheatMod.Network
         // Remove matching player-item from saved items
         public static void DeleteItem(Item item, int targetNum)
         {
+            ReceiveDeletedItems.RemoveElement(item);
+
             var packet = ScuffedAnticheatMod.instance.GetPacket();
             packet.Write((byte)MessageType.UpdateDeletedItemSaveData);
             packet.Write((byte)targetNum);

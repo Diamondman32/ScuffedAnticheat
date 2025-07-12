@@ -191,9 +191,8 @@ namespace ScuffedAnticheatMod.UI
                 {
                     if (i <= openSlots)
                     {
-                        UpdateDeletedItemSaveData.ReturnItemToPlayer(item, targetNum);
+                        ModifyPlayerData.ReturnItemToPlayer(item, targetNum);
                         UpdateDeletedItemSaveData.DeleteItem(item, targetNum);
-                        DeletedItemReponse.RemoveElement(item);
                         i++;
                     }
                     else
@@ -207,7 +206,6 @@ namespace ScuffedAnticheatMod.UI
             {
                 foreach (Item item in items)
                 {
-                    DeletedItemReponse.RemoveElement(item);
                     UpdateDeletedItemSaveData.DeleteItem(item, targetNum);
                 }
             }

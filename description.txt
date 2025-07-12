@@ -1,1 +1,10 @@
-Scuffed Anticheat is a pretty cool mod, it does...this. Modify this file with a description of your mod.
+The Scuffed Anticheat Mod enables more control over server hosting.
+
+- Server-Side-Characters
+    - Player Items saved on server which replaces locally saved items
+    - When items are replaced they can be returned by an admin
+
+- Enforce client mods match server mods
+    - All mods not on the server instance are disallowed
+
+Note: This mod raises the amount of effort it takes to cheat but those with the coding know-how will likely be able to get around it...

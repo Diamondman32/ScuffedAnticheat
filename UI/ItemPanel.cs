@@ -190,9 +190,9 @@ namespace ScuffedAnticheatMod.UI
 				List<Item> items = new List<Item>();
 
 				// check for items received status and iteration progress. Gives up after 10 secs
-				while ((!DeletedItemReponse.itemsReceived || DeletedItemReponse.playerDeletedItems.Count != i) && !timeHasRunOut)
+				while ((!ReceiveDeletedItems.itemsReceived || ReceiveDeletedItems.playerDeletedItems.Count != i) && !timeHasRunOut)
 				{
-					if (i < DeletedItemReponse.playerDeletedItems.Count)
+					if (i < ReceiveDeletedItems.playerDeletedItems.Count)
 					{
 						// Item Rows
 						if (itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
@@ -228,7 +228,7 @@ namespace ScuffedAnticheatMod.UI
 						itemSlotRows[^1].Append(itemSlotBackgrounds[i]);
 
 						// Items
-						items.Add(DeletedItemReponse.playerDeletedItems[i]);
+						items.Add(ReceiveDeletedItems.playerDeletedItems[i]);
 						uiItemSlots.Add(new UIItemSlot(items.ToArray(), i, 14)
 						{
 							Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
@@ -267,7 +267,7 @@ namespace ScuffedAnticheatMod.UI
 		private void selectAll_onClick(UIMouseEvent evt, UIElement element)
 		{
 			UIPanel panel = (UIPanel)element;
-			if (DeletedItemReponse.itemsReceived)
+			if (ReceiveDeletedItems.itemsReceived)
 			{
 				for (int i = 0; i < selectedItemMap.Count; i++)
 					selectedItemMap[i] = true;
@@ -335,7 +335,7 @@ namespace ScuffedAnticheatMod.UI
 			for (int i = 0; i < selectedItemMap.Count; i++)
 			{
 				if (selectedItemMap[i])
-					selectedItems.Add(DeletedItemReponse.playerDeletedItems[i]);
+					selectedItems.Add(ReceiveDeletedItems.playerDeletedItems[i]);
 			}
 			confirmationPanel = new ConfirmationPanel(player.whoAmI, returnItems, selectedItems, HideConfirmation);
 			parent?.RemoveChild(this);
