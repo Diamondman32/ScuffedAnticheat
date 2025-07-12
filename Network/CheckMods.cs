@@ -36,25 +36,33 @@ namespace ScuffedAnticheatMod.Network
         // Checks each user installed mod for a matching mod on the serverlist
         public static void ProcessRequest(ref BinaryReader reader, int playerNumber)
         {
+            List<string> clientHashList = new();
             serverHashList ??= BytesToString(ScuffedAnticheatMod.modHashes);
 
             bool modsHashedSuccessfully = reader.ReadByte() == 1;
-            if (!modsHashedSuccessfully)
-                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Mod hashing failed"));
-
-            List<string> clientHashList = new();
-            int numMods = reader.ReadByte();
-            for (int i = 0; i < numMods; i++)
+            if (modsHashedSuccessfully)
             {
-                int numBytes = reader.ReadByte();
-                string hash = BytesToString(reader.ReadBytes(numBytes));
-                clientHashList.Add(hash);
+                int numMods = reader.ReadByte();
+                for (int i = 0; i < numMods; i++)
+                {
+                    int numBytes = reader.ReadByte();
+                    string hash = BytesToString(reader.ReadBytes(numBytes));
+                    clientHashList.Add(hash);
+                }
+            }
+            else
+            {
+                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Mod hashing failed"));
+                return;
             }
 
             foreach (string hash in clientHashList)
             {
                 if (!serverHashList.Contains(hash))
+                {
                     NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Mods are incompatible with the server. Please confirm mods with server host"));
+                    return;
+                }
             }
         }
 

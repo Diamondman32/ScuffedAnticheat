@@ -17,8 +17,8 @@ namespace ScuffedAnticheatMod
             {
                 CheckInventory.SendPacket();
                 CheckMods.SendPacket();
-                ModContent.GetInstance<SAMModSystem>().DisablePlayerList();
             }
+            ModContent.GetInstance<SAMModSystem>().DisablePlayerList();
         }
 
         // Every update (60 fps?) checks inventory for modifications

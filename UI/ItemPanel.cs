@@ -175,7 +175,7 @@ namespace ScuffedAnticheatMod.UI
 		{
 			RequestDeletedItems.AskNicelyForPlayersDeletedItems(player.whoAmI);
 
-			List<UIItemSlot> uiItemSlots = new List<UIItemSlot>();
+			List<UIItemDisplay> uiItemSlots = new List<UIItemDisplay>();
 			List<UIPanel> itemSlotRows = new List<UIPanel>();
 			itemSlotBackgrounds.Clear();
 			itemList.Clear();
@@ -229,7 +229,7 @@ namespace ScuffedAnticheatMod.UI
 
 						// Items
 						items.Add(ReceiveDeletedItems.playerDeletedItems[i]);
-						uiItemSlots.Add(new UIItemSlot(items.ToArray(), i, 14)
+						uiItemSlots.Add(new UIItemDisplay(items[i], 14)
 						{
 							Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
 							Height = StyleDimension.FromPixelsAndPercent(0f, 1f)

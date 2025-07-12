@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -14,7 +15,10 @@ namespace ScuffedAnticheatMod.UI
 
 		public void TogglePlayerList()
 		{
-			if(_playerListWindow.CurrentState == null)
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			if (_playerListWindow.CurrentState == null)
 			{
 				_playerListWindow.SetState(playerListWindow);
 			}

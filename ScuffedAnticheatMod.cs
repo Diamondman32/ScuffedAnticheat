@@ -11,6 +11,7 @@ using System.Reflection;
 using Terraria.ModLoader.Core;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Terraria.ID;
 
 namespace ScuffedAnticheatMod
 {
@@ -21,9 +22,9 @@ namespace ScuffedAnticheatMod
         public static List<byte[]> modHashes => ModHashes;
         public static bool modsHashedSuccessfully { get; private set; }
 
-        // Runs after all mods are loaded. Retrieves all hashes and HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
+        // Runs after all mods are loaded. Retrieves all hashes and if HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
         public override void PostSetupContent()
-        {
+        {       
             // Get mod hashes
             modsHashedSuccessfully = true;
             ModHashes.Clear();
@@ -46,9 +47,10 @@ namespace ScuffedAnticheatMod
                     TmodFile file = (TmodFile)field?.GetValue(mod);
                     byte[] hash = file?.Hash;
 
-                    if (hash == null)
-                    {
+                    if (hash != null)
                         ModHashes.Add(hash);
+                    else
+                    {
                         modsHashedSuccessfully = false;
 
                         if (Main.dedServ)
