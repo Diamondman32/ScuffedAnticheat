@@ -2,6 +2,7 @@ using Terraria.ModLoader;
 using Terraria;
 using Terraria.ID;
 using ScuffedAnticheatMod.Network;
+using ScuffedAnticheatMod.UI;
 
 namespace ScuffedAnticheatMod
 {
@@ -16,6 +17,7 @@ namespace ScuffedAnticheatMod
             {
                 CheckInventory.SendPacket();
                 CheckMods.SendPacket();
+                ModContent.GetInstance<SAMModSystem>().DisablePlayerList();
             }
         }
 

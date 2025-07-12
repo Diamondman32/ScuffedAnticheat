@@ -22,13 +22,18 @@ namespace ScuffedAnticheatMod.UI
 				_playerListWindow.SetState(null);
 		}
 
+		public void DisablePlayerList()
+		{
+			_playerListWindow.SetState(null);
+		}
+
         public override void Load()
-        {
-            playerListWindow = new ItemRecoveryUI();
+		{
+			playerListWindow = new ItemRecoveryUI();
 			playerListWindow.Activate();
 			_playerListWindow = new UserInterface();
 			_playerListWindow.SetState(null);
-        }
+		}
 
         public override void UpdateUI(GameTime gameTime)
         {
