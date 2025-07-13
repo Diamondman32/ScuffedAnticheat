@@ -165,7 +165,7 @@ namespace ScuffedAnticheatMod.Network
     public class UpdateDeletedItemSaveData : SAMNetwork
     {
         /*  SERVER  */
-        // Reads incoming UpdateSaveData packets and updates save data accordingly
+        // Removes matching player-item from saved items when instructed by client
         public static void ProcessRequest(ref BinaryReader reader, int senderNum)
         {
             int targetNum = reader.ReadByte();
@@ -189,7 +189,8 @@ namespace ScuffedAnticheatMod.Network
             SyncDeletedItems.SyncClients(senderNum);
         }
 
-        // Remove matching player-item from saved items
+        /*  CLIENT  */
+        // Remove matching player-item from saved items and tells server to do the same
         public static void DeleteItem(Item item, int targetNum)
         {
             ReceiveDeletedItems.RemoveElement(item);
