@@ -281,17 +281,5 @@ namespace ScuffedAnticheatMod.Network
 
             return string.IsNullOrEmpty(json) ? new List<T>() : JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>(); // the null case doesnt work
         }
-
-        public static void IsAnythingNull()
-        {
-            if(playerInventories == null)
-                throw new System.Exception("NULLNULLNULLNULLNULL");
-            foreach(PlayerInventory inv in playerInventories)
-                if(inv.playerName == null)
-                    throw new System.Exception("NULLNULLNULLNULLNULL");
-            foreach(DeletedItem item in deletedItems)
-                if(item.owner == null)
-                    throw new System.Exception("NULLNULLNULLNULLNULL");
-        }
     }
 }
