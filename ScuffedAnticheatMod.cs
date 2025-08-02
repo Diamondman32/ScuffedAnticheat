@@ -11,7 +11,6 @@ using System.Reflection;
 using Terraria.ModLoader.Core;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Terraria.ID;
 
 namespace ScuffedAnticheatMod
 {
@@ -67,7 +66,7 @@ namespace ScuffedAnticheatMod
                 herosMod.Call("AddPermission", permissionName, "Recover Items From Void", null);
                 // Add a button
                 Asset<Texture2D> texture = TextureAssets.Trash;
-                Action buttonClicked = () => { ModContent.GetInstance<SAMModSystem>().TogglePlayerList(); };
+                Action buttonClicked = () => { ModContent.GetInstance<UIOverlay>().TogglePlayerList(); };
                 Action<bool> groupUpdated = (bool b) => { };
                 Func<string> tooltip = () => { return "Deleted Items"; };
                 herosMod.Call("AddSimpleButton", permissionName, texture, buttonClicked, groupUpdated, tooltip);
@@ -86,6 +85,7 @@ namespace ScuffedAnticheatMod
             else if (Main.dedServ)
             {
                 SAMNetwork.DeserializeAll();
+                UpdateItemSaveData.Autosave();
             }
         }
 
@@ -95,6 +95,3 @@ namespace ScuffedAnticheatMod
         }
     }
 }
-
-//  Side Projects:
-//  Consider tracking and updating player position

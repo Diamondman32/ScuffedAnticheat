@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Terraria;
@@ -11,6 +12,9 @@ namespace ScuffedAnticheatMod.Network
     public class UpdateItemSaveData : SAMNetwork
     {
         /*  SERVER  */
+        static Timer locationUpdate = null;
+        static Timer actualSave = null;
+
         // Reads incoming UpdateSaveData packets and updates save data accordingly
         public static void ProcessRequest(ref BinaryReader reader, int playerNum)
         {
@@ -65,11 +69,61 @@ namespace ScuffedAnticheatMod.Network
                 }
             }
 
-            // Serialize into json file
-            string json = JsonConvert.SerializeObject(playerInventories);
-            using StreamWriter outputFile = new(CharacterDataPath);
-            outputFile.WriteLine(json);
-            outputFile.Close();
+            // Reset timers
+            locationUpdate.Change(0, 1000);
+            actualSave.Change(0, 60000);
+
+            UpdateLocationSave();
+            Serialize();
+        }
+
+        private static readonly object _lock = new object();
+        public static void Serialize()
+        {
+            lock (_lock)
+            {
+                string json = JsonConvert.SerializeObject(playerInventories);
+                using StreamWriter outputFile = new(CharacterDataPath);
+                outputFile.WriteLine(json);
+                outputFile.Close();
+            }
+        }
+
+        private static void UpdateLocationSave()
+        {
+            playerInventories.ForEach(x =>
+            {
+                foreach (Player player in Main.player)
+                {
+                    if (!player.active || player.dead)
+                        continue;
+
+                    if (x.playerName == player.name && x.guid == guids[player.whoAmI] && x.worldID == Main.worldID)
+                    {
+                        x.UpdatePosition(player.whoAmI);
+                    }
+                }
+            });
+        }
+
+        public static void Autosave()
+        {
+            locationUpdate = new Timer(_ =>
+            {
+                UpdateLocationSave();
+            }, null, 0, 1000);
+
+            actualSave = new Timer(_ =>
+            {
+                foreach (Player player in Main.player)
+                    if (player.active)
+                    {
+                        Serialize();
+                        actualSave.Change(0, 60000);
+                        return;
+                    }
+                actualSave.Change(0, 600000);
+            }, null, 0, 60000);
         }
 
         /*  CLIENT  */

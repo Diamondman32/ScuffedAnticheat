@@ -17,16 +17,17 @@ namespace ScuffedAnticheatMod
             {
                 CheckInventory.SendPacket();
                 CheckMods.SendPacket();
+                RequestLocation.SendPacket();
             }
-            ModContent.GetInstance<SAMModSystem>().DisablePlayerList();
+            ModContent.GetInstance<UIOverlay>().DisablePlayerList();
         }
 
         // Every update (60 fps?) checks inventory for modifications
         public override void PostUpdate()
         {
-            if(Main.netMode == NetmodeID.MultiplayerClient)
+            if (Main.netMode == NetmodeID.MultiplayerClient)
             {
-                if(oldInventory.playerName == "uninitialized")
+                if (oldInventory.playerName == "uninitialized")
                     oldInventory = new PlayerInventory(Main.LocalPlayer);
                 UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
             }

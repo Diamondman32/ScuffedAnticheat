@@ -8,7 +8,7 @@ using Terraria.UI;
 namespace ScuffedAnticheatMod.UI
 {
 	[Autoload(Side = ModSide.Client)]
-	public class SAMModSystem : ModSystem
+	public class UIOverlay : ModSystem
 	{
 		internal ItemRecoveryUI playerListWindow;
 		private UserInterface _playerListWindow;

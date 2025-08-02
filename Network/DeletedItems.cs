@@ -69,7 +69,7 @@ namespace ScuffedAnticheatMod.Network
         // Refreshes item list UI if it is open
         public static void ProcessRequest()
         {
-            ModContent.GetInstance<UI.SAMModSystem>()?.playerListWindow?.playerListWindow?.playerItemWindow?.itemListPanel?.RefreshItemList();
+            ModContent.GetInstance<UI.UIOverlay>()?.playerListWindow?.playerListWindow?.playerItemWindow?.itemListPanel?.RefreshItemList();
         }
 
         /*  SERVER  */

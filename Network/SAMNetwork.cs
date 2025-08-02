@@ -8,7 +8,8 @@ using System.Collections.Generic;
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems, UpdateDeletedItemSaveData, SyncDeletedItems }
+    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems,
+        UpdateDeletedItemSaveData, SyncDeletedItems, RequestLocation, ReceiveLocation }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
@@ -50,10 +51,11 @@ namespace ScuffedAnticheatMod.Network
     }
     public class PlayerInventory
     {
-        // member variables
 		public string playerName { get; }
         public string guid { get; }
         public int worldID { get; }
+        public float xPos { get; private set; }
+        public float yPos { get; private set; }
 		public EzItem[] inventory { get; }
         public EzItem[] bank1 { get; }
         public EzItem[] bank2 { get; }
@@ -65,7 +67,6 @@ namespace ScuffedAnticheatMod.Network
         public EzItem[] miscDyes { get; }
         public EzItem[] trash { get; }
 
-        // Public Method
         private void Initialize()
         {
             // Starter Items
@@ -97,6 +98,12 @@ namespace ScuffedAnticheatMod.Network
                 miscDyes[i] = new(new(ItemID.None));
             trash[0] = new(new(ItemID.None));
         }
+        public void UpdatePosition(int playerNum)
+        {
+            Player player = Main.player[playerNum];
+            xPos = player.position.X;
+            yPos = player.position.Y;
+        }
 
         // Constructors
         public PlayerInventory()
@@ -104,6 +111,8 @@ namespace ScuffedAnticheatMod.Network
             playerName = "uninitialized";
             guid = "uninitialized";
             worldID = Main.worldID;
+            xPos = Main.spawnTileX * 16;
+            yPos = (Main.spawnTileY + 3) * 16;
             inventory = new EzItem[59];
             bank1 = new EzItem[40];
             bank2 = new EzItem[40];
@@ -150,12 +159,14 @@ namespace ScuffedAnticheatMod.Network
             trash[0] = new(player.trashItem);
         }
         [JsonConstructor]
-        public PlayerInventory(string playerName, string guid, int worldID, EzItem[] inventory, EzItem[] bank1, EzItem[] bank2, EzItem[] bank3, EzItem[] bank4, EzItem[] armor,
-            EzItem[] dye, EzItem[] miscEquips, EzItem[] miscDyes, EzItem[] trash)
+        public PlayerInventory(string playerName, string guid, int worldID, float xPos, float yPos, EzItem[] inventory, EzItem[] bank1, EzItem[] bank2, EzItem[] bank3,
+            EzItem[] bank4, EzItem[] armor, EzItem[] dye, EzItem[] miscEquips, EzItem[] miscDyes, EzItem[] trash)
         {
             this.playerName = playerName;
             this.guid = guid;
             this.worldID = worldID;
+            this.xPos = xPos;
+            this.yPos = yPos;
             this.inventory = inventory;
             this.bank1 = bank1;
             this.bank2 = bank2;
@@ -201,9 +212,9 @@ namespace ScuffedAnticheatMod.Network
 
         // Sorts SAM packets based off of their message type
         public static void HandlePacket(BinaryReader reader, int playerNumber)
-		{
+        {
             MessageType msgType = (MessageType)reader.ReadByte();
-            switch(msgType)
+            switch (msgType)
             {
                 case MessageType.CheckInventory:
                     CheckInventory.ProcessRequest(ref reader, playerNumber);
@@ -229,8 +240,14 @@ namespace ScuffedAnticheatMod.Network
                 case MessageType.SyncDeletedItems:
                     SyncDeletedItems.ProcessRequest();
                     break;
+                case MessageType.ReceiveLocation:
+                    ReceiveLocation.ProcessRequest(ref reader);
+                    break;
+                case MessageType.RequestLocation:
+                    RequestLocation.ProcessRequest(playerNumber);
+                    break;
             }
-		}
+        }
 
         // Evaluates item equality based off of type, prefix, and stack
         protected static bool IsIdentical(EzItem item1, EzItem item2)
@@ -241,8 +258,8 @@ namespace ScuffedAnticheatMod.Network
         // Searches all saved player inventories with matching identifiers. Returns new inventory if not found and adds newInv to array
         protected static PlayerInventory FindPlayerInventory(string name, string guid, int worldID)
         {
-            foreach(PlayerInventory playerInventory in playerInventories)
-                if(playerInventory.playerName == name && playerInventory.guid == guid && playerInventory.worldID == worldID)
+            foreach (PlayerInventory playerInventory in playerInventories)
+                if (playerInventory.playerName == name && playerInventory.guid == guid && playerInventory.worldID == worldID)
                     return playerInventory;
             PlayerInventory newInv = new PlayerInventory(name, guid);
             playerInventories.Add(newInv);
@@ -253,10 +270,20 @@ namespace ScuffedAnticheatMod.Network
         public static List<Item> GetPlayerItems(int whoAmI)
         {
             List<Item> matchingItems = new List<Item>();
-            foreach(DeletedItem item in deletedItems)
-                if(item.owner == Main.player[whoAmI].name && item.guid == guids[whoAmI] && item.worldID == Main.worldID)
+            foreach (DeletedItem item in deletedItems)
+                if (item.owner == Main.player[whoAmI].name && item.guid == guids[whoAmI] && item.worldID == Main.worldID)
                     matchingItems.Add(item.item.GetClone());
             return matchingItems;
+        }
+
+        // Find matching guid and return playerNumber; if none found return -1
+        public static int GetPlayerNumberFromID(string id)
+        {
+            string targetguid = id[^36..];
+            for (int i = 0; i < guids.Length; i++)
+                if (targetguid == guids[i])
+                    return i;
+            return -1;
         }
 
         public static void DeserializeAll()
@@ -266,16 +293,16 @@ namespace ScuffedAnticheatMod.Network
         }
 
         private static List<T> Deserialize<T>(string path)
-		{
+        {
             string json = null;
-            if(File.Exists(path))
+            if (File.Exists(path))
             {
                 using StreamReader r = new(path);
                 json = r.ReadToEnd();
                 r.Close();
 
                 int startIndex = json.IndexOf('[');
-                if(startIndex != -1)
+                if (startIndex != -1)
                     json = json.Substring(startIndex, json.LastIndexOf(']') - startIndex + 1);
             }
 

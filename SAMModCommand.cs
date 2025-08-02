@@ -19,9 +19,10 @@ namespace ScuffedAnticheatMod
 		public override string Description
 			=> "Toggles Player List";
 
-		public override void Action(CommandCaller caller, string input, string[] args) {
-			if(Main.netMode == NetmodeID.MultiplayerClient)
-				ModContent.GetInstance<UI.SAMModSystem>().TogglePlayerList();
+		public override void Action(CommandCaller caller, string input, string[] args)
+		{
+			if (Main.netMode == NetmodeID.MultiplayerClient)
+				ModContent.GetInstance<UI.UIOverlay>().TogglePlayerList();
 			else
 				Main.NewText("Only available in multiplayer", Color.Red);
 		}
