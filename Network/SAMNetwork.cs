@@ -112,7 +112,7 @@ namespace ScuffedAnticheatMod.Network
             guid = "uninitialized";
             worldID = Main.worldID;
             xPos = Main.spawnTileX * 16;
-            yPos = (Main.spawnTileY + 3) * 16;
+            yPos = (Main.spawnTileY - 3) * 16;
             inventory = new EzItem[59];
             bank1 = new EzItem[40];
             bank2 = new EzItem[40];
