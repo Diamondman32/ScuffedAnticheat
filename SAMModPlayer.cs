@@ -34,5 +34,14 @@ namespace ScuffedAnticheatMod
                 UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
             }
         }
+
+        // Called after item data is synced with server on player join
+        public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
+        {
+            if (Main.dedServ)
+            {
+                ;
+            }
+        }
     }
 }

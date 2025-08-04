@@ -11,19 +11,24 @@ using System.Reflection;
 using Terraria.ModLoader.Core;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using MonoMod.RuntimeDetour.HookGen;
+using Terraria.Chat;
+using Terraria.Localization;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace ScuffedAnticheatMod
 {
     public class ScuffedAnticheatMod : Mod
-	{
-		public static ScuffedAnticheatMod instance;
+    {
+        public static ScuffedAnticheatMod instance;
         private static List<byte[]> ModHashes = new();
         public static List<byte[]> modHashes => ModHashes;
         public static bool modsHashedSuccessfully { get; private set; }
 
         // Runs after all mods are loaded. Retrieves all hashes and if HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
         public override void PostSetupContent()
-        {       
+        {
             // Get mod hashes
             modsHashedSuccessfully = true;
             ModHashes.Clear();
@@ -73,6 +78,11 @@ namespace ScuffedAnticheatMod
             }
         }
 
+        public override void HandlePacket(BinaryReader reader, int whoAmI)
+        {
+            SAMNetwork.HandlePacket(reader, whoAmI);
+        }
+
         // On mod load, get an instance to use for creating packets and create save directory
         public override void Load()
         {
@@ -86,12 +96,40 @@ namespace ScuffedAnticheatMod
             {
                 SAMNetwork.DeserializeAll();
                 UpdateItemSaveData.Autosave();
+
+                // IL
+                MethodInfo method = typeof(MessageBuffer).GetMethod("GetData");
+                HookEndpointManager.Modify(method, GetData_ILEdit);
             }
         }
 
-        public override void HandlePacket(BinaryReader reader, int whoAmI)
+        private static void GetData_ILEdit(ILContext il)
         {
-            SAMNetwork.HandlePacket(reader, whoAmI);
+            ILCursor c = new ILCursor(il);
+
+            // Move right before messageType instructions
+            if (!c.TryGotoNext(
+                i => i.MatchLdfld(typeof(MessageBuffer).GetField("readBuffer")),
+                i => i.MatchLdarg(1),
+                i => i.MatchLdelemU1(),
+                i => i.MatchDup(),
+                i => i.MatchStloc(out _)
+            ))
+            {
+                throw new Exception("Could not find byte read pattern");
+            }
+
+            // Go after ldelem.u1
+            c.Index += 3;
+
+            // Duplicate value and call my function
+            c.Emit(OpCodes.Dup); // duplicate the byte value
+            c.EmitDelegate(new Action<int>(messageType =>
+            {
+                if (messageType == 22 || messageType == 13)
+                    return;
+                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{messageType}"), Color.Aqua);
+            }));
         }
     }
 }
