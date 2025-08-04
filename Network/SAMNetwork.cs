@@ -211,6 +211,7 @@ namespace ScuffedAnticheatMod.Network
         public static List<DeletedItem> deletedItems { get; protected set; }
 
         // Sorts SAM packets based off of their message type
+        // TODO: inventory checks, mod checks, and Location tracking all rely on user self-identification and could be circumvented. not really sure if anticheat features are possible lol
         public static void HandlePacket(BinaryReader reader, int playerNumber)
         {
             MessageType msgType = (MessageType)reader.ReadByte();
@@ -307,6 +308,7 @@ namespace ScuffedAnticheatMod.Network
             }
 
             return string.IsNullOrEmpty(json) ? new List<T>() : JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>(); // the null case doesnt work
+            // TODO: Issue where data is lost presumably if server closes while saving. (found save data randomly cut off)
         }
     }
 }

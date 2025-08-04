@@ -7,7 +7,7 @@ using ScuffedAnticheatMod.UI;
 namespace ScuffedAnticheatMod
 {
     public class SAMPlayer : ModPlayer
-	{
+    {
         public PlayerInventory oldInventory = new PlayerInventory("uninitialized");
 
         // When player enters world, tell server to check their inventory
@@ -23,6 +23,8 @@ namespace ScuffedAnticheatMod
         }
 
         // Every update (60 fps?) checks inventory for modifications
+        // TODO: Maybe reduce the amount of inv checks (config?)
+        // TODO: Maybe add ON hooks in terraria instead
         public override void PostUpdate()
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
