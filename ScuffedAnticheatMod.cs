@@ -132,49 +132,29 @@ namespace ScuffedAnticheatMod
                 // Move the cursor to case 5:
                 c.GotoLabel(target);
 
-                for (int j = 0; j < 300; j++)
+                // Get all read variable indexes
+                // ldarg
+                // ldfld BinaryReader reader
+                // callvirt int16 ReadInt16() OR callvirt uint8 ReadByte()
+                // stloc
+                int[] indexes = new int[5];
+                for (int j = 0; j < indexes.Length; j++)
                 {
-                    c.Emit(OpCodes.Ldc_I4, j);
-                    c.EmitDelegate(new Action<int>((fart) =>
+                    if (c.TryGotoNext(MoveType.After,
+                         i => i.MatchLdarg(out _),
+                         i => i.MatchLdfld(typeof(MessageBuffer).GetField("reader")),
+                         i => i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadInt16")) || i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadByte")),
+                         i => i.MatchStloc(out indexes[j])
+                    ))
                     {
-                        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{fart}"), Color.Blue);
-                        DoSomething();
-                    }));
-                    c.Index++;
+                        // ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"number:"), Color.Blue);
+                        c.EmitDelegate(new Action(DoSomething));
+                    }
+                    else
+                    {
+                        throw new Exception("Could not find byte read pattern");
+                    }
                 }
-
-                //     // Get all read variable indexes
-                //     // ldarg
-                //     // ldfld BinaryReader reader
-                //     // callvirt int16 ReadInt16() OR callvirt uint8 ReadByte()
-                //     // stloc
-                //     int[] indexes = new int[5];
-                //     for (int j = 0; j < indexes.Length; j++)
-                //     {
-                //         if (c.TryGotoNext(MoveType.After,
-                //          i => i.MatchLdarg(out _),
-                //          i => i.MatchLdfld(typeof(MessageBuffer).GetField("reader")),
-                //          i => i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadInt16")) || i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadByte"))
-                //         //  i => i.MatchStloc(out indexes[j])
-                //         ))
-                //         {
-                //             if (j <= 3)
-                //                 continue;
-                //             // throw new Exception("Could not find byte read pattern");
-                //             // c.Emit(OpCodes.Dup);
-                //             // c.Emit(OpCodes.Conv_I4);
-                //             // c.Emit(OpCodes.Ldc_I4_5);
-                //             // c.Emit(OpCodes.Add);
-                //             c.EmitDelegate(new Action(() =>
-                //             {
-                //                 ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"number:"), Color.Blue);
-                //             }));
-                //         }
-                //         else
-                //         {
-                //             throw new Exception("Could not find byte read pattern");
-                //         }
-                //     }
 
                 // Put all variables onto stack
                 // for (int j = 0; j < indexes.Length; j++)
@@ -194,12 +174,11 @@ namespace ScuffedAnticheatMod
             throw new Exception("Hook location not found, switch(*) { case 5: ...");
         }
 
+        private static int count = 0;
         public static void DoSomething()
         {
-            if (true)
-            {
-                ;
-            }
+            count++;
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{count}"), Color.Red);
         }
     }
 }
