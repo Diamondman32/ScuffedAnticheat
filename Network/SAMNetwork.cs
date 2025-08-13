@@ -12,6 +12,7 @@ namespace ScuffedAnticheatMod.Network
         UpdateDeletedItemSaveData, SyncDeletedItems, RequestLocation, ReceiveLocation }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
+    // TODO: Item cloning for deleted items can try to access modded items that are no longer enabled
     // Structs
     public class EzItem
     {

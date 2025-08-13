@@ -83,6 +83,7 @@ namespace ScuffedAnticheatMod
             SAMNetwork.HandlePacket(reader, whoAmI);
         }
 
+        // TODO: consider using steam id instead
         // On mod load, get an instance to use for creating packets and create save directory
         public override void Load()
         {
@@ -90,7 +91,7 @@ namespace ScuffedAnticheatMod
             Directory.CreateDirectory(Main.SavePath);
             if (!Main.dedServ && !Guid.HasKey())
             {
-                Guid.CreateKey(); // Maybe use steam id and resort to guid if unavailible
+                Guid.CreateKey();
             }
             else if (Main.dedServ)
             {
@@ -107,29 +108,79 @@ namespace ScuffedAnticheatMod
         {
             ILCursor c = new ILCursor(il);
 
-            // Move right before messageType instructions
-            if (!c.TryGotoNext(
-                i => i.MatchLdfld(typeof(MessageBuffer).GetField("readBuffer")),
-                i => i.MatchLdarg(1),
-                i => i.MatchLdelemU1(),
-                i => i.MatchDup(),
-                i => i.MatchStloc(out _)
-            ))
+            ILLabel[] targets = null;
+            while (c.TryGotoNext(i => i.MatchSwitch(out targets)))
             {
-                throw new Exception("Could not find byte read pattern");
+                // Compiler wants the starting case to be 0, so it will subtract away the lowest case and shift everything down
+                // ldc.i4.1
+                // sub
+                // switch
+                int offset = 0;
+                if (c.Prev.MatchSub() && c.Prev.Previous.MatchLdcI4(out offset))
+                {
+                    ;
+                }
+
+                // Get the label for case 5: if it exists
+                int case5Index = 5 - offset;
+                if (case5Index < 0 || case5Index >= targets.Length || targets[case5Index] is not ILLabel target)
+                {
+                    continue;
+                }
+
+                // Move the cursor to case 5:
+                c.GotoLabel(target);
+
+                // Get all read variable indexes
+                // ldarg
+                // ldfld BinaryReader reader
+                // callvirt int16 ReadInt16() OR callvirt uint8 ReadByte()
+                // stloc
+                int[] indexes = new int[5];
+                for (int j = 0; j < indexes.Length; j++)
+                {
+                    if (c.TryGotoNext(MoveType.After,
+                     i => i.MatchLdarg(out _),
+                     i => i.MatchLdfld(typeof(MessageBuffer).GetField("reader")),
+                     i => i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadInt16")) || i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadByte"))
+                    //  i => i.MatchStloc(out indexes[j])
+                    ))
+                    {
+                        if (j <= 3)
+                            continue;
+                            
+                        // c.Emit(OpCodes.Dup);
+                        // c.Emit(OpCodes.Conv_I4);
+                        // c.Emit(OpCodes.Ldc_I4_5);
+                        // c.Emit(OpCodes.Add);
+                        c.EmitDelegate(Test);
+                    }
+                    else
+                    {
+                        throw new Exception("Could not find byte read pattern");
+                    }
+                }
+
+            // Put all variables onto stack
+            // for (int j = 0; j < indexes.Length; j++)
+            //     c.Emit(OpCodes.Ldloc, indexes[j]);
+
+            // // Now pop all variables into delegate
+            // c.EmitDelegate(new Action<byte, short, short, byte, short>((playerID, slotType, stack, prefix, type) =>
+            // {
+            //     ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"playerID: {playerID}, slotType: {slotType}, stack: {stack}, prefix: {prefix}, type: {type}"), Color.Aqua);
+            // }));
+
+            // Hook applied successfully
+            return;
             }
 
-            // Go after ldelem.u1
-            c.Index += 3;
-
-            // Duplicate value and call my function
-            c.Emit(OpCodes.Dup); // duplicate the byte value
-            c.EmitDelegate(new Action<int>(messageType =>
-            {
-                if (messageType == 22 || messageType == 13)
-                    return;
-                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{messageType}"), Color.Aqua);
-            }));
+            // Couldn't find the right place to insert.
+            throw new Exception("Hook location not found, switch(*) { case 5: ...");
+        }
+        private static void Test()
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"number:"), Color.Blue);
         }
     }
 }
