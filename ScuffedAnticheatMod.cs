@@ -16,6 +16,7 @@ using Terraria.Chat;
 using Terraria.Localization;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
+using log4net.Repository.Hierarchy;
 
 namespace ScuffedAnticheatMod
 {
@@ -98,6 +99,8 @@ namespace ScuffedAnticheatMod
                 SAMNetwork.DeserializeAll();
                 UpdateItemSaveData.Autosave();
 
+                Logger.InfoFormat("{0} Log", Name);
+
                 // IL
                 MethodInfo method = typeof(MessageBuffer).GetMethod("GetData");
                 HookEndpointManager.Modify(method, GetData_ILEdit);
@@ -140,31 +143,41 @@ namespace ScuffedAnticheatMod
                 int[] indexes = new int[5];
                 for (int j = 0; j < indexes.Length; j++)
                 {
-                    if (c.TryGotoNext(MoveType.After,
+                    if (!c.TryGotoNext(MoveType.After,
                          i => i.MatchLdarg(out _),
                          i => i.MatchLdfld(typeof(MessageBuffer).GetField("reader")),
                          i => i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadInt16")) || i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadByte")),
                          i => i.MatchStloc(out indexes[j])
                     ))
                     {
-                        // ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"number:"), Color.Blue);
-                        c.EmitDelegate(new Action(DoSomething));
+                        throw new Exception("Could not find byte read pattern");
                     }
                     else
                     {
-                        throw new Exception("Could not find byte read pattern");
+                        c.Index--;
+                        c.Emit(OpCodes.Dup);
+                        c.Emit(OpCodes.Box, typeof(int));
+                        c.EmitDelegate(DoSomething);
                     }
                 }
 
                 // Put all variables onto stack
-                // for (int j = 0; j < indexes.Length; j++)
-                //     c.Emit(OpCodes.Ldloc, indexes[j]);
+                for (int j = 0; j < indexes.Length; j++)
+                {
+                    c.Emit(OpCodes.Ldloc, indexes[j]);
+                    c.Emit(OpCodes.Box, typeof(int));
+                }
 
-                // // Now pop all variables into delegate
-                // c.EmitDelegate(new Action<byte, short, short, byte, short>((playerID, slotType, stack, prefix, type) =>
-                // {
-                //     ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"playerID: {playerID}, slotType: {slotType}, stack: {stack}, prefix: {prefix}, type: {type}"), Color.Aqua);
-                // }));
+                // Now pop all variables into delegate
+                c.EmitDelegate(new Action<object, object, object, object, object>((playerID, slotType, stack, prefix, type) =>
+                {
+                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"playerID: {playerID}, slotType: {slotType}, stack: {stack}, prefix: {prefix}, type: {type}"), Color.Aqua);
+                }));
+
+                foreach (var instr in c.Instrs)
+                {
+                    instance.Logger.Info($"{instr.Offset:X4}: {instr.OpCode} {instr.Operand}");
+                }
 
                 // Hook applied successfully
                 return;
@@ -174,11 +187,9 @@ namespace ScuffedAnticheatMod
             throw new Exception("Hook location not found, switch(*) { case 5: ...");
         }
 
-        private static int count = 0;
-        public static void DoSomething()
+        public static void DoSomething(object num)
         {
-            count++;
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{count}"), Color.Red);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{num}"), Color.Red);
         }
     }
 }
