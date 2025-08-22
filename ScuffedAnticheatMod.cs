@@ -16,7 +16,7 @@ using Terraria.Chat;
 using Terraria.Localization;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
-using log4net.Repository.Hierarchy;
+using Mono.Cecil;
 
 namespace ScuffedAnticheatMod
 {
@@ -134,62 +134,39 @@ namespace ScuffedAnticheatMod
 
                 // Move the cursor to case 5:
                 c.GotoLabel(target);
-
-                // Get all read variable indexes
-                // ldarg
-                // ldfld BinaryReader reader
-                // callvirt int16 ReadInt16() OR callvirt uint8 ReadByte()
-                // stloc
-                int[] indexes = new int[5];
-                for (int j = 0; j < indexes.Length; j++)
+                
+                // load argument 0 (this) onto stack and use it for hook
+                c.Emit(OpCodes.Ldarg_0);
+                c.EmitDelegate<Func<MessageBuffer, (int, int)>>((self) =>
                 {
-                    if (!c.TryGotoNext(MoveType.After,
-                         i => i.MatchLdarg(out _),
-                         i => i.MatchLdfld(typeof(MessageBuffer).GetField("reader")),
-                         i => i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadInt16")) || i.MatchCallvirt(typeof(BinaryReader).GetMethod("ReadByte")),
-                         i => i.MatchStloc(out indexes[j])
-                    ))
-                    {
-                        throw new Exception("Could not find byte read pattern");
-                    }
-                    else
-                    {
-                        c.Index--;
-                        c.Emit(OpCodes.Dup);
-                        c.Emit(OpCodes.Box, typeof(int));
-                        c.EmitDelegate(DoSomething);
-                    }
-                }
+                    BinaryReader r = self.reader;
+                    long start = r.BaseStream.Position;
 
-                // Put all variables onto stack
-                for (int j = 0; j < indexes.Length; j++)
+                    // 1) bufferID (overriden), 2) slotType, 3) type (doesn't work idk), 4) prefix, 5) stack
+                    _ = r.ReadByte();
+                    int slotType = r.ReadInt16();
+
+                    r.BaseStream.Position = start;
+
+                    return (self.whoAmI, slotType);
+                });
+                TypeReference tupleType = il.Method.Module.ImportReference(typeof((int, int)));
+                VariableDefinition localTuple = new VariableDefinition(tupleType);
+                il.Body.Variables.Add(localTuple);
+                c.Emit(OpCodes.Stloc, localTuple);
+
+                c.GotoNext(i => i.MatchLeave(out _));
+                c.Emit(OpCodes.Ldloc, localTuple);
+                c.EmitDelegate<Action<(int, int)>>(x =>
                 {
-                    c.Emit(OpCodes.Ldloc, indexes[j]);
-                    c.Emit(OpCodes.Box, typeof(int));
-                }
+                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{x.Item1}, {x.Item2}"), Color.Beige);
+                    UpdateInventory.OnInventoryChange(x.Item1, x.Item2);
+                });
 
-                // Now pop all variables into delegate
-                c.EmitDelegate(new Action<object, object, object, object, object>((playerID, slotType, stack, prefix, type) =>
-                {
-                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"playerID: {playerID}, slotType: {slotType}, stack: {stack}, prefix: {prefix}, type: {type}"), Color.Aqua);
-                }));
-
-                foreach (var instr in c.Instrs)
-                {
-                    instance.Logger.Info($"{instr.Offset:X4}: {instr.OpCode} {instr.Operand}");
-                }
-
-                // Hook applied successfully
                 return;
             }
 
-            // Couldn't find the right place to insert.
             throw new Exception("Hook location not found, switch(*) { case 5: ...");
-        }
-
-        public static void DoSomething(object num)
-        {
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{num}"), Color.Red);
         }
     }
 }

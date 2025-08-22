@@ -258,11 +258,17 @@ namespace ScuffedAnticheatMod.Network
         }
 
         // Searches all saved player inventories with matching identifiers. Returns new inventory if not found and adds newInv to array
-        protected static PlayerInventory FindPlayerInventory(string name, string guid, int worldID)
+        protected static PlayerInventory FindPlayerInventory(int playerNumber)
         {
+            string name = Main.player[playerNumber].name;
+            string guid = guids[playerNumber];
+            
+            // If it exists, return matching inv
             foreach (PlayerInventory playerInventory in playerInventories)
-                if (playerInventory.playerName == name && playerInventory.guid == guid && playerInventory.worldID == worldID)
+                if (playerInventory.playerName == name && playerInventory.guid == guid && playerInventory.worldID == Main.worldID)
                     return playerInventory;
+            
+            // Make a new inv
             PlayerInventory newInv = new PlayerInventory(name, guid);
             playerInventories.Add(newInv);
             return newInv;

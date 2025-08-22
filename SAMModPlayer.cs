@@ -27,12 +27,12 @@ namespace ScuffedAnticheatMod
         // TODO: Maybe add ON hooks in terraria instead
         public override void PostUpdate()
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient)
-            {
-                if (oldInventory.playerName == "uninitialized")
-                    oldInventory = new PlayerInventory(Main.LocalPlayer);
-                UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
-            }
+            // if (Main.netMode == NetmodeID.MultiplayerClient)
+            // {
+            //     if (oldInventory.playerName == "uninitialized")
+            //         oldInventory = new PlayerInventory(Main.LocalPlayer);
+            //     UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
+            // }
         }
 
         // Called after item data is synced with server on player join

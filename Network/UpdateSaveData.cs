@@ -78,6 +78,7 @@ namespace ScuffedAnticheatMod.Network
         }
 
         private static readonly object _lock = new object();
+        // TODO: Make a temp file before overriding so data can't be lost
         public static void Serialize()
         {
             lock (_lock)
@@ -89,6 +90,7 @@ namespace ScuffedAnticheatMod.Network
             }
         }
 
+        // TODO: more hooks??
         private static void UpdateLocationSave()
         {
             playerInventories.ForEach(x =>
@@ -128,7 +130,7 @@ namespace ScuffedAnticheatMod.Network
 
         /*  CLIENT  */
         // Check every inventory slot for differences. If so, send packet to server to update its save data.
-        public static void UpdateInventoryDifferences(int whoAmI, PlayerInventory savedInventory) // Assuming savedInventory is used as a reference
+        public static void UpdateInventoryDifferences(int whoAmI, PlayerInventory savedInventory)
         {
             Player player = Main.player[whoAmI];
             PlayerInventory playerInventory = new(player);
