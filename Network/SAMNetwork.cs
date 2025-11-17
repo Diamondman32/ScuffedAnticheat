@@ -18,7 +18,6 @@ namespace ScuffedAnticheatMod.Network
     {
         [JsonIgnore]
         private Item clone { get; }
-        public string itemName { get; }
         public int type { get; }
         public int stack { get; }
         public int prefix { get; }
@@ -34,16 +33,14 @@ namespace ScuffedAnticheatMod.Network
         public EzItem(Item item)
         {
             clone = item.Clone();
-            itemName = item.Name;
             type = item.type;
             stack = item.stack;
             prefix = item.prefix;
             favorited = item.favorited;
         }
         [JsonConstructor]
-        public EzItem(string itemName, int type, int stack, int prefix, bool favorited)
+        public EzItem(int type, int stack, int prefix, bool favorited)
         {
-            this.itemName = itemName;
             this.type = type;
             this.stack = stack;
             this.prefix = prefix;

@@ -16,8 +16,8 @@ namespace ScuffedAnticheatMod.Network
         // Called with hook in MessageBuffer case 5 (SyncEquipment) 
         public static void OnInventoryChange(int playerID, int slotType)
         {
-            if (!Main.player[playerID].active)
-                return;
+            // if (!Main.player[playerID].active)
+            //     return;
 
             Player player = Main.player[playerID];
             PlayerInventory savedInventory = FindPlayerInventory(playerID);
@@ -104,6 +104,7 @@ namespace ScuffedAnticheatMod.Network
                 savedInventory.inventory[slotIndex] = new(player.inventory[slotIndex]);
             }
 
+            // TODO: Put on timer
             // UpdateItemSaveData.Serialize();
         }
 
