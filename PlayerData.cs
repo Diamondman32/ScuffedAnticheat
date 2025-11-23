@@ -1,12 +1,20 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using IL.Terraria.GameContent.UI.States;
 using Microsoft.Data.Sqlite;
+using ScuffedAnticheatMod.Network;
 using Terraria;
-
+using Terraria.ID;
+using Terraria.ModLoader;
+// TODO: maybe make seperate files for worlds
 namespace ScuffedAnticheatMod
 {
     public class PlayerData
     {
         private static string dbPath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "SAM_PlayerData" + ".db";
+        private static SqliteConnection connection;
 
         public static SqliteConnection GetConnection()
         {
@@ -19,42 +27,263 @@ namespace ScuffedAnticheatMod
 
         public static void Initialize()
         {
-            using SqliteConnection connection = GetConnection();
-            using SqliteCommand cmd = connection.CreateCommand();
+            connection = GetConnection();
 
-            cmd.CommandText = @"
-            CREATE TABLE IF NOT EXISTS Players (
-                PlayerID TEXT PRIMARY KEY,
-                PlayerName TEXT,
-                WorldID INTEGER,
-                XPos REAL,
-                YPos REAL
-            );
+            SqliteCommand playerTable = connection.CreateCommand();
+            playerTable.CommandText =
+            @"
+                CREATE TABLE IF NOT EXISTS Players (
+                    PlayerID INTEGER PRIMARY KEY NOT NULL,
+                    ClientID TEXT NOT NULL,
+                    PlayerName TEXT NOT NULL,
+                    WorldID INTEGER NOT NULL,
+                    XPos REAL NOT NULL,
+                    YPos REAL NOT NULL
+                )
+            ";
+            playerTable.ExecuteNonQuery();
 
-            CREATE TABLE IF NOT EXISTS Items (
-                ItemID INTEGER PRIMARY KEY AUTOINCREMENT,
-                PlayerID TEXT,
-                Container TEXT,
-                Slot INTEGER,
-                Type INTEGER,
-                Stack INTEGER,
-                Prefix INTEGER,
-                Favorited INTEGER,
-                FOREIGN KEY(PlayerID) REFERENCES Players(PlayerID)
-            );
+            SqliteCommand itemTable = connection.CreateCommand();
+            itemTable.CommandText =
+            @"
+                CREATE TABLE IF NOT EXISTS Items (
+                    Slot INTEGER NOT NULL,
+                    Type INTEGER NOT NULL,
+                    Stack INTEGER NOT NULL,
+                    Prefix INTEGER NOT NULL,
+                    Favorited INTEGER NOT NULL,
+                    PlayerID INTEGER NOT NULL,
+
+                    UNIQUE(PlayerID, Slot),
+
+                    FOREIGN KEY(PlayerID) 
+                        REFERENCES Players(PlayerID)
+                        ON DELETE CASCADE
+                )
+            ";
+            itemTable.ExecuteNonQuery();
+        }
+
+        public static PlayerInventory LoadPlayer(string guid, string name)
+        {
+            // Get playerID to find items and get location
+            SqliteCommand loadPlayer = connection.CreateCommand();
+            loadPlayer.Parameters.AddWithValue("$guid", guid);
+            loadPlayer.Parameters.AddWithValue("$name", name);
+            loadPlayer.Parameters.AddWithValue("$worldID", Main.worldID);
+            loadPlayer.CommandText =
+            @"
+                SELECT 
+                    PlayerID,
+                    XPos,
+                    YPos
+                FROM
+                    Players
+                WHERE 
+                    ClientID = $guid
+                    AND PlayerName = $name
+                    AND WorldID = $worldID;
             ";
 
-            // LOAD
-            string a = @"
-            SELECT * FROM Items
-            HAVING 
-                $PlayerID
-            ORDER BY 
-                slot
+            using SqliteDataReader loadPlayerReader = loadPlayer.ExecuteReader();
+            if (loadPlayerReader.Read())
+            {
+                float xPos = loadPlayerReader.GetFloat(1);
+                float yPos = loadPlayerReader.GetFloat(2);
 
-            SELECT * FROM Players
+                // Use playerID to get items
+                SqliteCommand loadItems = connection.CreateCommand();
+                loadItems.Parameters.AddWithValue("$playerID", loadPlayerReader.GetInt32(0));
+                loadItems.CommandText =
+                @"
+                    SELECT 
+                        Slot,
+                        Type,
+                        Stack,
+                        Prefix,
+                        Favorited
+                    FROM
+                        Items
+                    WHERE 
+                        PlayerID = $playerID
+                    ORDER BY 
+                        Slot
+                ";
+
+                EzItem[] inventory = InitializeArray(59);
+                EzItem[] bank1 = InitializeArray(40);
+                EzItem[] bank2 = InitializeArray(40);
+                EzItem[] bank3 = InitializeArray(40);
+                EzItem[] bank4 = InitializeArray(40);
+                EzItem[] armor = InitializeArray(20);
+                EzItem[] dye = InitializeArray(10);
+                EzItem[] miscEquips = InitializeArray(5);
+                EzItem[] miscDyes = InitializeArray(5);
+                EzItem[] trash = InitializeArray(1);
+
+                using SqliteDataReader r = loadItems.ExecuteReader();
+                while (r.Read())
+                {
+                    int slotType = r.GetInt32(0);
+                    if (slotType >= PlayerItemSlotID.Bank4_0)
+                    {
+                        bank4[slotType - PlayerItemSlotID.Bank4_0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Bank3_0)
+                    {
+                        bank3[slotType - PlayerItemSlotID.Bank3_0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.TrashItem)
+                    {
+                        trash[slotType - PlayerItemSlotID.TrashItem] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Bank2_0)
+                    {
+                        bank2[slotType - PlayerItemSlotID.Bank2_0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Bank1_0)
+                    {
+                        bank1[slotType - PlayerItemSlotID.Bank1_0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.MiscDye0)
+                    {
+                        miscDyes[slotType - PlayerItemSlotID.MiscDye0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Misc0)
+                    {
+                        miscEquips[slotType - PlayerItemSlotID.Misc0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Dye0)
+                    {
+                        dye[slotType - PlayerItemSlotID.Dye0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else if (slotType >= PlayerItemSlotID.Armor0)
+                    {
+                        armor[slotType - PlayerItemSlotID.Armor0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                    else
+                    {
+                        inventory[slotType - PlayerItemSlotID.Inventory0] = new(r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetBoolean(4));
+                    }
+                }
+
+                return new PlayerInventory(name, guid, Main.worldID, xPos, yPos, inventory, bank1, bank2, bank3, bank4, armor, dye, miscEquips, miscDyes, trash);
+            }
+            // If no read then a new character is joining (or data corruption lol)
+            CreateNewPlayer(guid, name);
+            return new PlayerInventory();
+        }
+
+        private static EzItem[] InitializeArray(int size)
+        {
+            EzItem[] arr = new EzItem[size];
+            for (int i = 0; i < size; i++)
+                arr[i] = new EzItem(new Item(ItemID.None));
+            return arr;
+        }
+
+        private static void CreateNewPlayer(string guid, string name)
+        {
+            using var transaction = connection.BeginTransaction();
+
+            // Add new player
+            SqliteCommand cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.Parameters.AddWithValue("$guid", guid);
+            cmd.Parameters.AddWithValue("$name", name);
+            cmd.Parameters.AddWithValue("$worldID", Main.worldID);
+            cmd.Parameters.AddWithValue("$xPos", Main.spawnTileX * 16);
+            cmd.Parameters.AddWithValue("$yPos", (Main.spawnTileY - 3) * 16);
+            cmd.CommandText =
+            @"
+                INSERT INTO Players (ClientID, PlayerName, WorldID, XPos, YPos)
+                Values($guid, $name, $worldID, $xPos, $yPos)
+            ";
+            cmd.ExecuteNonQuery();
+
+            // Add default player items
+            Player p = new Player();
+            Item[] defaults = p.inventory;
+
+            int playerID = GetPlayerID(name, guid, transaction);
+
+            for (int i = 0; i < defaults.Length; i++)
+            {
+                if (defaults[i].type != ItemID.None)
+                    UpsertItem(playerID, new EzItem(defaults[i]), i, transaction);
+            }
+
+            transaction.Commit();
+        }
+
+        private static int GetPlayerID(string name, string guid, SqliteTransaction transaction)
+        {
+            SqliteCommand cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.Parameters.AddWithValue("$name", name);
+            cmd.Parameters.AddWithValue("$guid", guid);
+            cmd.Parameters.AddWithValue("$worldID", Main.worldID);
+            cmd.CommandText = 
+            @"
+                SELECT PlayerID FROM Players
+                WHERE
+                    PlayerName = $name
+                    AND ClientID = $guid
+                    AND WorldID = $worldID
             ";
 
+            using SqliteDataReader reader = cmd.ExecuteReader();
+            if (!reader.Read())
+                throw new Exception("Player doesn't exist.");
+            return reader.GetInt32(0);
+        }
+
+        private static void UpsertItem(string guid, string name, EzItem item, int slot, SqliteTransaction transaction)
+        {
+            // Get player row ID
+            int playerID = GetPlayerID(name, guid, transaction);
+
+            UpsertItem(playerID, item, slot, transaction);
+        }
+
+        private static void UpsertItem(int playerID, EzItem item, int slot, SqliteTransaction transaction)
+        {
+            // Update or remove row
+            SqliteCommand cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.Parameters.AddWithValue("$slot", slot);
+            cmd.Parameters.AddWithValue("$playerID", playerID);
+
+            // Update item row
+            if (item.type != ItemID.None)
+            {
+                cmd.Parameters.AddWithValue("$type", item.type);
+                cmd.Parameters.AddWithValue("$stack", item.stack);
+                cmd.Parameters.AddWithValue("$prefix", item.prefix);
+                cmd.Parameters.AddWithValue("$favorited", item.favorited);
+                cmd.CommandText = 
+                @"
+                    INSERT INTO Items(Slot, Type, Stack, Prefix, Favorited, PlayerID)
+                    VALUES($slot, $type, $stack, $prefix, $favorited, $playerID)
+                    ON CONFLICT(PlayerID, Slot) DO UPDATE SET
+                        Type = excluded.Type,
+                        Stack = excluded.Stack,
+                        Prefix = excluded.Prefix,
+                        Favorited = excluded.Favorited,
+                        PlayerID = excluded.PlayerID
+                ";
+            }
+            // Delete item row
+            else
+            {
+                cmd.CommandText = 
+                @"
+                    DELETE FROM Items
+                    WHERE
+                        PlayerID = $playerID
+                        AND Slot = $slot
+                ";
+            }
             cmd.ExecuteNonQuery();
         }
     }
