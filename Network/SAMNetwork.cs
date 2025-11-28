@@ -205,8 +205,8 @@ namespace ScuffedAnticheatMod.Network
         protected static string CharacterDataPath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "AnticheatCharacterData.json";
         protected static string DiscardItemDataPath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "AnticheatDiscardData.json";
         public static string[] guids { get; protected set; } = new string[255]; // Parallel to Main.player[]; doesn't remove inactive players
-        public static List<PlayerInventory> playerInventories { get; protected set; }
-        public static List<DeletedItem> deletedItems { get; protected set; }
+        public static PlayerInventory[] playerInventories { get; protected set; } = new PlayerInventory[255];
+        public static List<DeletedItem> deletedItems { get; protected set; } = new List<DeletedItem>();
 
         // Sorts SAM packets based off of their message type
         // TODO: inventory checks, mod checks, and Location tracking all rely on user self-identification and could be circumvented. not really sure if anticheat features are possible lol
@@ -221,9 +221,9 @@ namespace ScuffedAnticheatMod.Network
                 case MessageType.CheckMods:
                     CheckMods.ProcessRequest(ref reader, playerNumber);
                     break;
-                case MessageType.UpdateSaveData:
-                    UpdateItemSaveData.ProcessRequest(ref reader, playerNumber);
-                    break;
+                // case MessageType.UpdateSaveData:
+                //     UpdateItemSaveData.ProcessRequest(ref reader, playerNumber);
+                //     break;
                 case MessageType.UpdateDeletedItemSaveData:
                     UpdateDeletedItemSaveData.ProcessRequest(ref reader, playerNumber);
                     break;
@@ -255,20 +255,13 @@ namespace ScuffedAnticheatMod.Network
         }
 
         // Searches all saved player inventories with matching identifiers. Returns new inventory if not found and adds newInv to array
-        protected static PlayerInventory FindPlayerInventory(int playerNumber)
+        protected static PlayerInventory LoadPlayerInventory(int playerNumber)
         {
             string name = Main.player[playerNumber].name;
             string guid = guids[playerNumber];
             
             // If it exists, return matching inv
-            foreach (PlayerInventory playerInventory in playerInventories)
-                if (playerInventory.playerName == name && playerInventory.guid == guid && playerInventory.worldID == Main.worldID)
-                    return playerInventory;
-            
-            // Make a new inv
-            PlayerInventory newInv = new PlayerInventory(name, guid);
-            playerInventories.Add(newInv);
-            return newInv;
+            return PlayerData.LoadPlayer(name, guid);
         }
 
         // Return all deleted items in player inventory
@@ -289,30 +282,6 @@ namespace ScuffedAnticheatMod.Network
                 if (targetguid == guids[i])
                     return i;
             return -1;
-        }
-
-        public static void DeserializeAll()
-        {
-            playerInventories = Deserialize<PlayerInventory>(CharacterDataPath);
-            deletedItems = Deserialize<DeletedItem>(DiscardItemDataPath);
-        }
-
-        private static List<T> Deserialize<T>(string path)
-        {
-            string json = null;
-            if (File.Exists(path))
-            {
-                using StreamReader r = new(path);
-                json = r.ReadToEnd();
-                r.Close();
-
-                int startIndex = json.IndexOf('[');
-                if (startIndex != -1)
-                    json = json.Substring(startIndex, json.LastIndexOf(']') - startIndex + 1);
-            }
-
-            return string.IsNullOrEmpty(json) ? new List<T>() : JsonConvert.DeserializeObject<List<T>>(json) ?? new List<T>(); // the null case doesnt work
-            // TODO: Issue where data is lost presumably if server closes while saving. (found save data randomly cut off)
         }
     }
 }

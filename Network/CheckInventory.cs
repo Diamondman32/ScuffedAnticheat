@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Terraria.ID;
 using Microsoft.Xna.Framework;
 using MonoMod.Utils;
-using Newtonsoft.Json;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Localization;
@@ -30,7 +29,7 @@ namespace ScuffedAnticheatMod.Network
         {
             Player player = Main.player[playerNumber];
             guids[playerNumber] = reader.ReadNullTerminatedString();
-            PlayerInventory savedInventory = FindPlayerInventory(playerNumber);
+            PlayerInventory savedInventory = LoadPlayerInventory(playerNumber);
 
             SearchInventory(player, savedInventory);
         }
@@ -181,12 +180,9 @@ namespace ScuffedAnticheatMod.Network
                 message += $"{player.name}'s {Lang.GetItemNameValue(item.type)} broke causality and has been seized by local authorites.\n";
             }
             if(message.EndsWith('\n'))
-                message = message.Remove(message.Length - 1);
+                message = message[..^1];
 
-            string json = JsonConvert.SerializeObject(deletedItems);
-            using StreamWriter outputFile = new(DiscardItemDataPath);
-            outputFile.WriteLine(json);
-            outputFile.Close();
+            deletedItems.ForEach(PlayerData.AddDeletedItem);
 
             // Async code that waits until player join for a max of 60 seconds to send message (so msg is not sent before the player joins)
             _ = Task.Run(async () =>

@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using IL.Terraria.GameContent.UI.States;
 using Microsoft.Data.Sqlite;
 using ScuffedAnticheatMod.Network;
 using Terraria;
 using Terraria.ID;
-using Terraria.ModLoader;
 // TODO: maybe make seperate files for worlds
 namespace ScuffedAnticheatMod
 {
@@ -62,9 +58,24 @@ namespace ScuffedAnticheatMod
                 )
             ";
             itemTable.ExecuteNonQuery();
+
+            SqliteCommand deletedItemTable = connection.CreateCommand();
+            deletedItemTable.CommandText =
+            @"
+                CREATE TABLE IF NOT EXISTS DeletedItems (
+                    Type INTEGER NOT NULL,
+                    Stack INTEGER NOT NULL,
+                    Prefix INTEGER NOT NULL,
+                    Favorited INTEGER NOT NULL,
+                    PlayerName TEXT NOT NULL,
+                    ClientID TEXT NOT NULL,
+                    WorldID INTEGER NOT NULL
+                )
+            ";
+            deletedItemTable.ExecuteNonQuery();
         }
 
-        public static PlayerInventory LoadPlayer(string guid, string name)
+        public static PlayerInventory LoadPlayer(string name, string guid)
         {
             // Get playerID to find items and get location
             SqliteCommand loadPlayer = connection.CreateCommand();
@@ -170,8 +181,8 @@ namespace ScuffedAnticheatMod
                 return new PlayerInventory(name, guid, Main.worldID, xPos, yPos, inventory, bank1, bank2, bank3, bank4, armor, dye, miscEquips, miscDyes, trash);
             }
             // If no read then a new character is joining (or data corruption lol)
-            CreateNewPlayer(guid, name);
-            return new PlayerInventory();
+            CreateNewPlayer(name, guid);
+            return new PlayerInventory(name, guid);
         }
 
         private static EzItem[] InitializeArray(int size)
@@ -182,9 +193,9 @@ namespace ScuffedAnticheatMod
             return arr;
         }
 
-        private static void CreateNewPlayer(string guid, string name)
+        private static void CreateNewPlayer(string name, string guid)
         {
-            using var transaction = connection.BeginTransaction();
+            using SqliteTransaction transaction = connection.BeginTransaction();
 
             // Add new player
             SqliteCommand cmd = connection.CreateCommand();
@@ -238,7 +249,7 @@ namespace ScuffedAnticheatMod
             return reader.GetInt32(0);
         }
 
-        private static void UpsertItem(string guid, string name, EzItem item, int slot, SqliteTransaction transaction)
+        private static void UpsertItem(string name, string guid, EzItem item, int slot, SqliteTransaction transaction)
         {
             // Get player row ID
             int playerID = GetPlayerID(name, guid, transaction);
@@ -285,6 +296,53 @@ namespace ScuffedAnticheatMod
                 ";
             }
             cmd.ExecuteNonQuery();
+        }
+
+        public static void AddDeletedItem(DeletedItem dItem)
+        {
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            SqliteCommand cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.Parameters.AddWithValue("$type", dItem.item.type);
+            cmd.Parameters.AddWithValue("$stack", dItem.item.stack);
+            cmd.Parameters.AddWithValue("$prefix", dItem.item.prefix);
+            cmd.Parameters.AddWithValue("$favorited", dItem.item.favorited);
+            cmd.Parameters.AddWithValue("$name", dItem.owner);
+            cmd.Parameters.AddWithValue("$guid", dItem.guid);
+            cmd.Parameters.AddWithValue("$worldID", dItem.worldID);
+            cmd.CommandText = 
+            @"
+                INSERT INTO DeletedItems(Type, Stack, Prefix, Favorited, PlayerName, ClientID, WorldID)
+                VALUES($slot, $type, $stack, $prefix, $favorited, $name, $guid, $worldID)
+            ";
+            transaction.Commit();
+        }
+
+        public static void RemoveDeletedItem(DeletedItem dItem)
+        {
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            SqliteCommand cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.Parameters.AddWithValue("$type", dItem.item.type);
+            cmd.Parameters.AddWithValue("$stack", dItem.item.stack);
+            cmd.Parameters.AddWithValue("$prefix", dItem.item.prefix);
+            cmd.Parameters.AddWithValue("$favorited", dItem.item.favorited);
+            cmd.Parameters.AddWithValue("$name", dItem.owner);
+            cmd.Parameters.AddWithValue("$guid", dItem.guid);
+            cmd.Parameters.AddWithValue("$worldID", dItem.worldID);
+            cmd.CommandText = 
+            @"
+                DELETE FROM DeletedItems
+                WHERE
+                    ClientID = $guid
+                    AND PlayerName = $name
+                    AND WorldID = $worldID
+                    AND Type = $type
+                    AND Stack = $stack
+                    AND Prefix = $prefix
+                    AND Favorited = $favorited
+            ";
+            transaction.Commit();
         }
     }
 }

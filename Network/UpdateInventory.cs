@@ -20,7 +20,7 @@ namespace ScuffedAnticheatMod.Network
             //     return;
 
             Player player = Main.player[playerID];
-            PlayerInventory savedInventory = FindPlayerInventory(playerID);
+            PlayerInventory savedInventory = playerInventories[playerID];
             int slotIndex;
 
             if (slotType >= PlayerItemSlotID.Bank4_0)

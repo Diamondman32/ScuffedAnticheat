@@ -24,7 +24,7 @@ namespace ScuffedAnticheatMod.Network
             var packet = ScuffedAnticheatMod.instance.GetPacket();
             packet.Write((byte)MessageType.ReceiveLocation);
 
-            PlayerInventory player = FindPlayerInventory(playerNumber);
+            PlayerInventory player = playerInventories[playerNumber];
             packet.WriteVector2(new Vector2(player.xPos, player.yPos));
             
             packet.Send(playerNumber);
