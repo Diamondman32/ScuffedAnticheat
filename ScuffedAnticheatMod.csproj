@@ -1,14 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\tModLoader.targets" />
+
   <PropertyGroup>
     <AssemblyName>ScuffedAnticheatMod</AssemblyName>
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <Reference Include="SQLite">
+      <HintPath>lib/SQLite.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <Reference Include="Microsoft.Data.Sqlite">
+      <HintPath>lib/Microsoft.Data.Sqlite.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.batteries_v2">
+      <HintPath>lib/SQLitePCLRaw.batteries_v2.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.core">
+      <HintPath>lib/SQLitePCLRaw.core.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SQLitePCLRaw.provider.e_sqlite3">
+      <HintPath>lib/SQLitePCLRaw.provider.e_sqlite3.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
+
 </Project>
