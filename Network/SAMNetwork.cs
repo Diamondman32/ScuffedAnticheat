@@ -4,11 +4,12 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using MonoMod.Utils;
 
 namespace ScuffedAnticheatMod.Network
 {
     // Enums
-    public enum MessageType { CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems,
+    public enum MessageType { SendHandshake, ReceiveHandshake, CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems,
         UpdateDeletedItemSaveData, SyncDeletedItems, RequestLocation, ReceiveLocation }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
@@ -206,24 +207,26 @@ namespace ScuffedAnticheatMod.Network
         protected static string DiscardItemDataPath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "AnticheatDiscardData.json";
         public static string[] guids { get; protected set; } = new string[255]; // Parallel to Main.player[]; doesn't remove inactive players
         public static PlayerInventory[] playerInventories { get; protected set; } = new PlayerInventory[255];
+        public static bool[] allowedPlayers { get; protected set; } = new bool[255];
         public static List<DeletedItem> deletedItems { get; protected set; } = new List<DeletedItem>();
 
         // Sorts SAM packets based off of their message type
         // TODO: inventory checks, mod checks, and Location tracking all rely on user self-identification and could be circumvented. not really sure if anticheat features are possible lol
+        // TODO: Verify that inventory was changed
         public static void HandlePacket(BinaryReader reader, int playerNumber)
         {
             MessageType msgType = (MessageType)reader.ReadByte();
             switch (msgType)
             {
-                case MessageType.CheckInventory:
-                    CheckInventory.ProcessRequest(ref reader, playerNumber);
+                case MessageType.SendHandshake:
+                    CheckMods.SendPacket();
                     break;
-                case MessageType.CheckMods:
+                case MessageType.ReceiveHandshake:
+                    SetupPlayer(ref reader, playerNumber);
+                    CheckInventory.ProcessRequest(playerNumber);
                     CheckMods.ProcessRequest(ref reader, playerNumber);
+                    allowedPlayers[playerNumber] = true;
                     break;
-                // case MessageType.UpdateSaveData:
-                //     UpdateItemSaveData.ProcessRequest(ref reader, playerNumber);
-                //     break;
                 case MessageType.UpdateDeletedItemSaveData:
                     UpdateDeletedItemSaveData.ProcessRequest(ref reader, playerNumber);
                     break;
@@ -248,22 +251,27 @@ namespace ScuffedAnticheatMod.Network
             }
         }
 
+        public static void InitiateHandshake(int playerNumber)
+        {
+            allowedPlayers[playerNumber] = false;
+            var packet = ScuffedAnticheatMod.instance.GetPacket();
+            packet.Write((byte)MessageType.SendHandshake);
+            packet.Send(playerNumber);
+        }
+
+        public static void SetupPlayer(ref BinaryReader reader, int playerNumber)
+        {
+            guids[playerNumber] = reader.ReadNullTerminatedString();
+            playerInventories[playerNumber] = PlayerData.LoadPlayer(Main.player[playerNumber].name, guids[playerNumber]);
+        }
+
         // Evaluates item equality based off of type, prefix, and stack
         protected static bool IsIdentical(EzItem item1, EzItem item2)
         {
             return item1.type == item2.type && item1.prefix == item2.prefix && item1.stack == item2.stack;
         }
 
-        // Searches all saved player inventories with matching identifiers. Returns new inventory if not found and adds newInv to array
-        protected static PlayerInventory LoadPlayerInventory(int playerNumber)
-        {
-            string name = Main.player[playerNumber].name;
-            string guid = guids[playerNumber];
-            
-            // If it exists, return matching inv
-            return PlayerData.LoadPlayer(name, guid);
-        }
-
+        // TODO: load deleted items
         // Return all deleted items in player inventory
         public static List<Item> GetPlayerItems(int whoAmI)
         {

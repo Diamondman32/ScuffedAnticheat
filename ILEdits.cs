@@ -1,17 +1,7 @@
-using Terraria.ModLoader;
 using System.IO;
 using Terraria;
 using ScuffedAnticheatMod.Network;
-using ReLogic.Content;
-using Terraria.GameContent;
-using Microsoft.Xna.Framework.Graphics;
 using System;
-using ScuffedAnticheatMod.UI;
-using System.Reflection;
-using Terraria.ModLoader.Core;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using MonoMod.RuntimeDetour.HookGen;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using Mono.Cecil;
@@ -23,7 +13,7 @@ namespace ScuffedAnticheatMod
 {
     public class ILEdits
     {
-        private static void GetData_ILEdit(ILContext il)
+        public static void GetData_ILEdit(ILContext il)
         {
             ILCursor c = new ILCursor(il);
 
@@ -41,17 +31,6 @@ namespace ScuffedAnticheatMod
                     ;
                 }
 
-                // Get the label for case 3 if it exists
-                int case3Index = 3 - offset;
-                if (case3Index < 0 || case3Index >= targets.Length || targets[case3Index] is not ILLabel target3)
-                {
-                    continue;
-                }
-
-                // Move cursor to case 3: PlayerInfo
-                c.GotoLabel(target3);
-                HookCase3(c);
-
                 // Get the label for case 5 if it exists
                 int case5Index = 5 - offset;
                 if (case5Index < 0 || case5Index >= targets.Length || targets[case5Index] is not ILLabel target5)
@@ -62,94 +41,24 @@ namespace ScuffedAnticheatMod
                 c.GotoLabel(target5);
                 HookCase5(il, c);
 
+                // Get the label for case 6 if it exists
+                int case6Index = 6 - offset;
+                if (case6Index < 0 || case6Index >= targets.Length || targets[case6Index] is not ILLabel target6)
+                {
+                    continue;
+                }
+
+                // Move cursor to case 6:
+                c.GotoLabel(target6);
+                HookCase6(c);
+
                 return;
             }
 
             throw new Exception("Hook location not found, switch(*) { case 5: ...");
         }
 
-        private static void HookCase3(ILCursor c)
-        {
-            int playerNumberIndex = -1;
-            c.GotoNext(
-                i => i.MatchLdarg(0),
-                i => i.MatchLdfld<BinaryReader>("reader"),
-                i => i.MatchCallvirt<BinaryReader>("ReadByte"),
-                i => i.MatchStloc(out playerNumberIndex)
-            );
-
-            c.GotoNext(
-                i => i.MatchLdcI4(6),
-                i => i.MatchLdcI4(-1),
-                i => i.MatchLdcI4(-1),
-                i => i.MatchLdnull(),
-                i => i.MatchLdcI4(0),
-                i => i.MatchLdcR4(0f),
-                i => i.MatchLdcR4(0f),
-                i => i.MatchLdcR4(0f),
-                i => i.MatchLdcI4(0),
-                i => i.MatchLdcI4(0),
-                i => i.MatchLdcI4(0),
-                i => i.MatchCall<bool>("TrySendData")
-            );
-
-            c.Emit(OpCodes.Ldloc_S, playerNumberIndex);
-
-            // Hold the player hostage until they do SAM handshake
-            c.EmitDelegate(async (int playerNumber) =>
-            {
-                SAMNetwork.InitiateHandshake(playerNumber);
-                int timeout = 10000;
-                int interval = 100;
-                int elapsed = 0;
-
-                while (!SAMNetwork.allowedPlayers[playerNumber] && elapsed < timeout)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                }
-
-                if (elapsed < timeout)
-                {
-                    FinishCase3(c);
-                    return;
-                }
-                else
-                    NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("SAM: Client failed to authenticate"));
-            });
-            c.Emit(OpCodes.Ret);
-        }
-
-        private static void FinishCase3_Runtime()
-        {
-            Netplay.Connection.
-        }
-
-        private static void FinishCase3(ILCursor c)
-        {
-            c.Emit(OpCodes.Ldc_I4_6);
-            c.Emit(OpCodes.Ldc_I4_M1);
-            c.Emit(OpCodes.Ldc_I4_M1);
-            c.Emit(OpCodes.Ldnull);
-            c.Emit(OpCodes.Ldc_I4_0);
-            c.Emit(OpCodes.Ldc_R4, 0f);
-            c.Emit(OpCodes.Ldc_R4, 0f);
-            c.Emit(OpCodes.Ldc_R4, 0f);
-            c.Emit(OpCodes.Ldc_I4_0);
-            c.Emit(OpCodes.Ldc_I4_0);
-            c.Emit(OpCodes.Ldc_I4_0);
-            c.Emit<bool>(OpCodes.Call, "TrySendData");
-            c.Emit(OpCodes.Pop);
-            c.Emit<RemoteServer>(OpCodes.Ldsfld, "Connection");
-            c.Emit<int>(OpCodes.Ldfld, "State");
-            c.Emit(OpCodes.Ldc_I4_2);
-            c.Emit(OpCodes.Bne_Un, OpCodes.Ret);
-            c.Emit<RemoteServer>(OpCodes.Ldsfld, "Connection");
-            c.Emit(OpCodes.Ldc_I4_3);
-            c.Emit<int>(OpCodes.Stfld, "State");
-            c.Emit(OpCodes.Ret);
-        }
-
+        // Send each item update to SAM
         private static void HookCase5(ILContext il, ILCursor c)
         {       
                 // load argument 0 (this) onto stack and use it for hook
@@ -196,6 +105,51 @@ namespace ScuffedAnticheatMod
                 // {
                 //     instance.Logger.Info($"{instr.Offset:X4}: {instr.OpCode} {instr.Operand}");
                 // }
+        }
+
+        // Wait for client to do checks before letting them in
+        private static void HookCase6(ILCursor c)
+        {
+            c.GotoNext( i => i.MatchLdfld<int>("whoAmI") );
+
+            c.Emit(OpCodes.Dup);
+
+            // Hold the player hostage until they do SAM handshake. They are given 10 seconds lol
+            c.EmitDelegate(async (int playerNumber) =>
+            {
+                SAMNetwork.InitiateHandshake(playerNumber);
+                int timeout = 10000;
+                int interval = 100;
+                int elapsed = 0;
+
+                while (!SAMNetwork.allowedPlayers[playerNumber] && elapsed < timeout)
+                {
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                }
+
+                if (elapsed < timeout)
+                {
+                    // Complete normal case flow
+                    FinishCase6_Runtime(playerNumber);
+                    return;
+                }
+                else
+                    NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("SAM: Client failed to authenticate"));
+            });
+            c.Emit(OpCodes.Pop);
+            c.Emit(OpCodes.Pop);
+            c.Emit(OpCodes.Ret);
+        }
+
+        private static void FinishCase6_Runtime(int playerNumber)
+        {
+            if (Netplay.Clients[playerNumber].State == 1)
+            {
+                Netplay.Clients[playerNumber].State = 2;
+            }
+            NetMessage.TrySendData(7, playerNumber);
+            Main.SyncAnInvasion(playerNumber);
         }
     }
 }

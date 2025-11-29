@@ -4,6 +4,7 @@ using Terraria.ID;
 using Terraria;
 using Terraria.Localization;
 using System.Collections.Generic;
+using MonoMod.Utils;
 
 namespace ScuffedAnticheatMod.Network
 {
@@ -17,7 +18,8 @@ namespace ScuffedAnticheatMod.Network
         public static void SendPacket()
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.CheckMods);
+            packet.Write((byte)MessageType.ReceiveHandshake);
+            packet.WriteNullTerminatedString(Guid.guid);
             packet.Write((byte)ScuffedAnticheatMod.modsHashedSuccessfully.ToInt());
             if (ScuffedAnticheatMod.modsHashedSuccessfully)
             {

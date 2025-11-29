@@ -7,43 +7,28 @@ using Terraria;
 using Terraria.Chat;
 using Terraria.Localization;
 using System.Collections.Generic;
+using Terraria.ModLoader;
 
 namespace ScuffedAnticheatMod.Network
 {
     public class CheckInventory : SAMNetwork
     {
-        /*  CLIENT  */
-        // Sends a packet to server to check inventory and gives guid
-        public static void SendPacket()
-        {
-            var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.CheckInventory);
-            packet.WriteNullTerminatedString(Guid.guid);
-            packet.Send(255); // Send to server
-        }
-
         /*  SERVER  */
         // TODO: Make a hook for when a player joins and expect a packet. Also move below packet to a more dedicated space
-        // Checks entire inventory against json save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
-        public static void ProcessRequest(ref BinaryReader reader, int playerNumber)
+        // TODO: Send packet that opens inventory if item is saved in 58
+        // Checks entire inventory against save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
+        public static void ProcessRequest(int playerNumber)
         {
             Player player = Main.player[playerNumber];
-            guids[playerNumber] = reader.ReadNullTerminatedString();
-            PlayerInventory savedInventory = LoadPlayerInventory(playerNumber);
+            PlayerInventory playerInventory = new(player);
+            PlayerInventory savedInventory = playerInventories[playerNumber];
 
-            SearchInventory(player, savedInventory);
-        }
+            List<EzItem> itemsDeleted = new List<EzItem>();
+            List<EzItem> itemsAdded = new List<EzItem>();
 
-        // TODO: Send packet that opens inventory if item is saved in 58. Also consider using code snippet
-        // Helper Method that searches inventory, sends packet, and saves delted item.
-        private static void SearchInventory(Player player, PlayerInventory savedInventory)
-        {
             // Main.player[0].inventory[40] = new Item(type);
             // if (type != 0)
             //     NetMessage.SendData(5, 0, 256, null, 0, 40, 0);
-            PlayerInventory playerInventory = new(player);
-            List<EzItem> itemsDeleted = new List<EzItem>();
-            List<EzItem> itemsAdded = new List<EzItem>();
 
             for (int i = 0; i < playerInventory.inventory.Length; i++)
                 if (i == 58)
@@ -62,7 +47,7 @@ namespace ScuffedAnticheatMod.Network
                     {
                         if (!IsIdentical(playerInventory.inventory[i], savedInventory.inventory[58]))
                             itemsDeleted.Add(playerInventory.inventory[i]);
-                        SendPacket(player.whoAmI, ItemCategory.Inventory, i, savedInventory.inventory[58]);
+                        SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[58]);
                         savedInventory.inventory[i] = savedInventory.inventory[58];
                         savedInventory.inventory[58] = new EzItem(new Item(ItemID.None));
                     }
@@ -70,7 +55,7 @@ namespace ScuffedAnticheatMod.Network
                     {
                         itemsAdded.Add(savedInventory.inventory[i]);
                         itemsDeleted.Add(playerInventory.inventory[i]);
-                        SendPacket(player.whoAmI, ItemCategory.Inventory, i, savedInventory.inventory[i]);
+                        SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[i]);
                     }
                 }
 
@@ -79,7 +64,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank1[i]);
                     itemsDeleted.Add(playerInventory.bank1[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Bank1, i, savedInventory.bank1[i]);
+                    SendPacket(playerNumber, ItemCategory.Bank1, i, savedInventory.bank1[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank2.Length; i++)
@@ -87,7 +72,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank2[i]);
                     itemsDeleted.Add(playerInventory.bank2[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Bank2, i, savedInventory.bank2[i]);
+                    SendPacket(playerNumber, ItemCategory.Bank2, i, savedInventory.bank2[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank3.Length; i++)
@@ -95,7 +80,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank3[i]);
                     itemsDeleted.Add(playerInventory.bank3[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Bank3, i, savedInventory.bank3[i]);
+                    SendPacket(playerNumber, ItemCategory.Bank3, i, savedInventory.bank3[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank4.Length; i++)
@@ -103,7 +88,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank4[i]);
                     itemsDeleted.Add(playerInventory.bank4[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Bank4, i, savedInventory.bank4[i]);
+                    SendPacket(playerNumber, ItemCategory.Bank4, i, savedInventory.bank4[i]);
                 }
 
             for (int i = 0; i < playerInventory.armor.Length; i++)
@@ -111,7 +96,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.armor[i]);
                     itemsDeleted.Add(playerInventory.armor[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Armor, i, savedInventory.armor[i]);
+                    SendPacket(playerNumber, ItemCategory.Armor, i, savedInventory.armor[i]);
                 }
 
             for (int i = 0; i < playerInventory.dye.Length; i++)
@@ -119,7 +104,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.dye[i]);
                     itemsDeleted.Add(playerInventory.dye[i]);
-                    SendPacket(player.whoAmI, ItemCategory.Dye, i, savedInventory.dye[i]);
+                    SendPacket(playerNumber, ItemCategory.Dye, i, savedInventory.dye[i]);
                 }
 
             for (int i = 0; i < playerInventory.miscEquips.Length; i++)
@@ -127,7 +112,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.miscEquips[i]);
                     itemsDeleted.Add(playerInventory.miscEquips[i]);
-                    SendPacket(player.whoAmI, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
+                    SendPacket(playerNumber, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
                 }
 
             for (int i = 0; i < playerInventory.miscDyes.Length; i++)
@@ -135,14 +120,14 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.miscDyes[i]);
                     itemsDeleted.Add(playerInventory.miscDyes[i]);
-                    SendPacket(player.whoAmI, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
+                    SendPacket(playerNumber, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
                 }
 
             if (!IsIdentical(playerInventory.trash[0], savedInventory.trash[0]))
             {
                 itemsAdded.Add(savedInventory.trash[0]);
                 itemsDeleted.Add(playerInventory.trash[0]);
-                SendPacket(player.whoAmI, ItemCategory.Trash, 0, savedInventory.trash[0]);
+                SendPacket(playerNumber, ItemCategory.Trash, 0, savedInventory.trash[0]);
             }
 
             RemoveIdenticalIndexes(itemsDeleted, itemsAdded);
