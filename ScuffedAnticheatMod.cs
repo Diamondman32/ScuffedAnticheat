@@ -25,7 +25,13 @@ namespace ScuffedAnticheatMod
         // Runs after all mods are loaded. Retrieves all hashes and if HerosMod is enabled, add a UI button which has SAM deletedItem UI functionality
         public override void PostSetupContent()
         {
-            // Get mod hashes
+            HashMods();
+            ModCalls();
+        }
+
+        // Get mod hashes
+        private static void HashMods()
+        {
             modsHashedSuccessfully = true;
             ModHashes.Clear();
             bool loadedTModLoader = false;
@@ -58,7 +64,10 @@ namespace ScuffedAnticheatMod
                     }
                 }
             }
+        }
 
+        private static void ModCalls()
+        {
             // Add HerosMod UI button
             if (ModLoader.TryGetMod("HerosMod", out Mod herosMod))
             {

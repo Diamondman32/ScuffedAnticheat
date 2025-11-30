@@ -1,3 +1,4 @@
 displayName = Scuffed Anticheat
 author = Diamondman32
 version = 1.0
+dllReferences = Microsoft.Data.Sqlite, SQLitePCLRaw.batteries_v2, SQLitePCLRaw.core, SQLitePCLRaw.provider.e_sqlite3
