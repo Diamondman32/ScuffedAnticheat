@@ -13,12 +13,6 @@ namespace ScuffedAnticheatMod
         // When player enters world, tell server to check their inventory
         public override void OnEnterWorld(Player player)
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient)
-            {
-                CheckInventory.SendPacket();
-                CheckMods.SendPacket();
-                RequestLocation.SendPacket();
-            }
             ModContent.GetInstance<UIOverlay>().DisablePlayerList();
         }
 

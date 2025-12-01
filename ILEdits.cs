@@ -97,8 +97,8 @@ namespace ScuffedAnticheatMod
                 c.Emit(OpCodes.Ldloc, localTuple);
                 c.EmitDelegate<Action<(int, int)>>(x =>
                 {
-                    // ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{x.Item1}, {x.Item2}"), Color.Beige);
-                    UpdateInventory.OnInventoryChange(x.Item1, x.Item2);
+                    if (Netplay.Clients[x.Item1].State > 6)
+                        UpdateInventory.OnInventoryChange(x.Item1, x.Item2);
                 });
 
                 // foreach (var instr in c.Instrs)
@@ -108,41 +108,44 @@ namespace ScuffedAnticheatMod
         }
 
         // Wait for client to do checks before letting them in
+        // TODO: Consider moving to case 49
         private static void HookCase6(ILCursor c)
         {
-            c.GotoNext( i => i.MatchLdfld<int>("whoAmI") );
+            c.GotoNext(MoveType.After, i => i.MatchLdfld<MessageBuffer>("whoAmI") );
 
             c.Emit(OpCodes.Dup);
 
             // Hold the player hostage until they do SAM handshake. They are given 10 seconds lol
-            c.EmitDelegate(async (int playerNumber) =>
+            c.EmitDelegate((int playerNumber) =>
             {
                 SAMNetwork.InitiateHandshake(playerNumber);
-                int timeout = 10000;
-                int interval = 100;
-                int elapsed = 0;
-
-                while (!SAMNetwork.allowedPlayers[playerNumber] && elapsed < timeout)
+                
+                // Create timer on background thread to give the client time without blocking server
+                _ = Task.Run(async () =>
                 {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                }
+                    int timeout = 10000;
+                    int interval = 100;
+                    int elapsed = 0;
 
-                if (elapsed < timeout)
-                {
-                    // Complete normal case flow
-                    FinishCase6_Runtime(playerNumber);
-                    return;
-                }
-                else
-                    NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("SAM: Client failed to authenticate"));
+                    while (!SAMNetwork.allowedPlayers[playerNumber] && elapsed < timeout)
+                    {
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                    }
+
+                    // Terraria is non-thread safe so any actions must be done on main thread
+                    if (elapsed < timeout)
+                        SAMModSystem.EnqueueJoiningPlayer(playerNumber);
+                    else
+                        SAMModSystem.EnqueueJoiningPlayer(-playerNumber - 1);
+                });
             });
             c.Emit(OpCodes.Pop);
             c.Emit(OpCodes.Pop);
             c.Emit(OpCodes.Ret);
         }
 
-        private static void FinishCase6_Runtime(int playerNumber)
+        public static void FinishCase6_Runtime(int playerNumber)
         {
             if (Netplay.Clients[playerNumber].State == 1)
             {

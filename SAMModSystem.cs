@@ -1,21 +1,44 @@
 using System.Collections.Generic;
 using System.IO;
 using Terraria.ModLoader;
-using System.Linq;
 using System.Runtime.InteropServices;
-using static Terraria.ModLoader.Core.TmodFile;
 using System;
 using System.Reflection;
-using Terraria.Localization;
 using SQLitePCL;
 using Terraria;
+using Terraria.ID;
+using Terraria.Localization;
 
 namespace ScuffedAnticheatMod;
 
 [Autoload(Side = ModSide.Server)]
-internal class NativeFeatureSystem : ModSystem
+internal class SAMModSystem : ModSystem
 {
     private readonly Dictionary<string, IntPtr> loadedLibs = new();
+    private static readonly Queue<int> pendingClients = new();
+
+    public static void EnqueueJoiningPlayer(int playerNumber)
+    {
+        pendingClients.Enqueue(playerNumber);
+    }
+
+    public override void PostUpdateEverything()
+    {
+        while (pendingClients.TryDequeue(out int playerNumber))
+        {
+            // Negative means kick
+            // Note: there are kick messages earlier so this will likely never be used
+            if (playerNumber < 0)
+            {
+                playerNumber = -playerNumber + 1;
+                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("[ScuffedAnticheatMod] Client failed to authenticate"));
+                continue;
+            }
+
+            // Positive means let them in (finish the remainder of case 6 in MessageBuffer::GetData)
+            ILEdits.FinishCase6_Runtime(playerNumber);
+        }
+    }
 
     public override void Load()
     {
@@ -34,9 +57,7 @@ internal class NativeFeatureSystem : ModSystem
             return loadedLibs["sqlite3"];
         });
 
-        
-
-        Batteries_V2.Init();
+        Batteries_V2.Init(); // do i even need this
     }
 
     public override void Unload()
@@ -45,8 +66,6 @@ internal class NativeFeatureSystem : ModSystem
         {
             NativeLibrary.Free(handle);
         }
-
-        // ALMonoMicrophone.UnloadOpenAL();
     }
 
     private string ExtractPlatformBinaries()

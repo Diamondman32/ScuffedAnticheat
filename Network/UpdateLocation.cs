@@ -5,21 +5,11 @@ using Terraria;
 
 namespace ScuffedAnticheatMod.Network
 {
-    public class ReceiveLocation : SAMNetwork
-    {
-        /*  CLIENT  */
-        // Teleports player to last location
-        public static void ProcessRequest(ref BinaryReader reader)
-        {
-            Main.LocalPlayer.Teleport(reader.ReadVector2(), -1);
-        }
-    }
-
-    public class RequestLocation : SAMNetwork
+    public class UpdateLocation : SAMNetwork
     {
         /*  SERVER  */
-        // Finds location and sends it back
-        public static void ProcessRequest(int playerNumber)
+        // Sends spawn location to player
+        public static void SendPacket(int playerNumber)
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
             packet.Write((byte)MessageType.ReceiveLocation);
@@ -30,12 +20,11 @@ namespace ScuffedAnticheatMod.Network
             packet.Send(playerNumber);
         }
 
-        // Requests correct location to move player
-        public static void SendPacket()
+        /*  CLIENT  */
+        // Teleports player to last location
+        public static void ProcessRequest(ref BinaryReader reader)
         {
-            var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.RequestLocation);
-            packet.Send(255); // Send to server
+            Main.LocalPlayer.Teleport(reader.ReadVector2(), -1);
         }
     }
 }

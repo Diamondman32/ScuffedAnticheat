@@ -225,6 +225,7 @@ namespace ScuffedAnticheatMod.Network
                     SetupPlayer(ref reader, playerNumber);
                     CheckInventory.ProcessRequest(playerNumber);
                     CheckMods.ProcessRequest(ref reader, playerNumber);
+                    UpdateLocation.SendPacket(playerNumber);
                     allowedPlayers[playerNumber] = true;
                     break;
                 case MessageType.UpdateDeletedItemSaveData:
@@ -241,12 +242,6 @@ namespace ScuffedAnticheatMod.Network
                     break;
                 case MessageType.SyncDeletedItems:
                     SyncDeletedItems.ProcessRequest();
-                    break;
-                case MessageType.ReceiveLocation:
-                    ReceiveLocation.ProcessRequest(ref reader);
-                    break;
-                case MessageType.RequestLocation:
-                    RequestLocation.ProcessRequest(playerNumber);
                     break;
             }
         }

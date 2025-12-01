@@ -9,12 +9,14 @@ namespace ScuffedAnticheatMod
 {
     public class PlayerData
     {
-        private static string dbPath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "SAM_PlayerData" + ".db";
+        private static string dbPath { get; } = Path.Combine(Main.SavePath, "ScuffedAnticheatMod", "PlayerData.db");
         private static SqliteConnection connection;
 
         public static SqliteConnection GetConnection()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
+            if (!File.Exists(dbPath))
+                File.Create(dbPath);
 
             SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}");
             connection.Open();
@@ -249,12 +251,12 @@ namespace ScuffedAnticheatMod
             return reader.GetInt32(0);
         }
 
-        private static void UpsertItem(string name, string guid, EzItem item, int slot, SqliteTransaction transaction)
+        public static void UpsertItem(string name, string guid, EzItem item, int slot)
         {
-            // Get player row ID
+            using SqliteTransaction transaction = connection.BeginTransaction();
             int playerID = GetPlayerID(name, guid, transaction);
-
             UpsertItem(playerID, item, slot, transaction);
+            transaction.Commit();
         }
 
         private static void UpsertItem(int playerID, EzItem item, int slot, SqliteTransaction transaction)
