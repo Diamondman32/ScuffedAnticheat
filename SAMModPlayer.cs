@@ -17,15 +17,5 @@ namespace ScuffedAnticheatMod
         {
             ModContent.GetInstance<UIOverlay>().DisablePlayerList();
         }
-
-        // Called after item data is synced with server on player join
-        // TODO: I don't know if I removed this function or plan to add it
-        public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
-        {
-            if (Main.dedServ)
-            {
-                ;
-            }
-        }
     }
 }

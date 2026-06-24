@@ -6,14 +6,11 @@ using Terraria.Chat;
 using Terraria.Localization;
 using System.Collections.Generic;
 
-// TODO: Default items not being saved to db
-
 namespace ScuffedAnticheatMod.Network
 {
     public class CheckInventory : SAMNetwork
     {
         /*  SERVER  */
-        // TODO: Make a hook for when a player joins and expect a packet. Also move below packet to a more dedicated space
         // TODO: Send packet that opens inventory if item is saved in 58
         // Checks entire inventory against save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
         public static void ProcessRequest(int playerNumber)

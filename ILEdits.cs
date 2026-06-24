@@ -6,8 +6,6 @@ using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using Mono.Cecil;
 using System.Threading.Tasks;
-using Terraria.ID;
-using Terraria.Localization;
 
 namespace ScuffedAnticheatMod
 {
@@ -71,7 +69,6 @@ namespace ScuffedAnticheatMod
                     // 1) bufferID (overriden), 2) slotType, 3) type (doesn't work idk), 4) prefix, 5) stack
                     _ = r.ReadByte();
                     int slotType = r.ReadInt16();
-                    // ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{slotType}"), Color.Green);
 
                     r.BaseStream.Position = start;
 
@@ -83,32 +80,15 @@ namespace ScuffedAnticheatMod
                 c.Emit(OpCodes.Stloc, localTuple);
 
                 c.GotoNext(i => i.MatchEndfinally());
-                // c.GotoNext(i => i.MatchLeave(out _));
-                // c.GotoNext(
-                //     i => i.MatchLdcI4(out _),
-                //     i => i.MatchLdcR4(out _),
-                //     i => i.MatchLdcR4(out _),
-                //     i => i.MatchLdcR4(out _),
-                //     i => i.MatchLdcI4(out _),
-                //     i => i.MatchLdcI4(out _),
-                //     i => i.MatchLdcI4(out _),
-                //     i => i.MatchCall(typeof(bool), "TrySendData")
-                //     );
                 c.Emit(OpCodes.Ldloc, localTuple);
                 c.EmitDelegate<Action<(int, int)>>(x =>
                 {
                     if (Netplay.Clients[x.Item1].State > 6)
                         UpdateInventory.OnInventoryChange(x.Item1, x.Item2);
                 });
-
-                // foreach (var instr in c.Instrs)
-                // {
-                //     instance.Logger.Info($"{instr.Offset:X4}: {instr.OpCode} {instr.Operand}");
-                // }
         }
 
-        // Wait for client to do checks before letting them in
-        // TODO: Consider moving to case 49
+        // Hijack the join step until client does mod check
         private static void HookCase6(ILCursor c)
         {
             c.GotoNext(MoveType.After, i => i.MatchLdfld<MessageBuffer>("whoAmI") );

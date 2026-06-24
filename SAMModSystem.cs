@@ -7,8 +7,6 @@ using System.Reflection;
 using SQLitePCL;
 using Terraria;
 using Terraria.Localization;
-using Terraria.Chat;
-using Microsoft.Xna.Framework;
 using Terraria.ID;
 
 namespace ScuffedAnticheatMod;
@@ -72,16 +70,10 @@ internal class SAMModSystem : ModSystem
     private string ExtractPlatformBinaries()
     {
         string path = "lib/runtimes/" + GetSQLiteNativeResource();
-        // string path = GetSQLiteNativeResource();
-        // path = path[(path.LastIndexOf(Path.PathSeparator)+1)..];
         string destinationPath = Path.Combine(Main.SavePath, "ScuffedAnticheatMod", path[(path.LastIndexOfAny([Path.DirectorySeparatorChar, '/', '\\'])+1)..]);
-        // string destinationPath = Path.Combine(Main.SavePath, "ScuffedAnticheatMod", path);
 
         if (!File.Exists(destinationPath))
         {
-            // using FileStream fs = Mod.Code.GetFile(path);
-            // byte[] buffer = new byte[fs.Length];
-            // fs.Read(buffer, 0, (int)fs.Length);
             byte[] buffer = Mod.GetFileBytes(path);
             File.WriteAllBytes(destinationPath, buffer);
         }
@@ -118,7 +110,7 @@ internal class SAMModSystem : ModSystem
                 "arm"      => "linux-arm/native/libe_sqlite3.so",
                 "arm64"    => "linux-arm64/native/libe_sqlite3.so",
 
-                // Additional Linux variants (if you choose to pack them)
+                // Additional Linux variants
                 "armel"    => "linux-armel/native/libe_sqlite3.so",
                 "mips64"   => "linux-mips64/native/libe_sqlite3.so",
                 "ppc64le"  => "linux-ppc64le/native/libe_sqlite3.so",

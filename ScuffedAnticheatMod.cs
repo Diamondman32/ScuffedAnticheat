@@ -88,7 +88,6 @@ namespace ScuffedAnticheatMod
             SAMNetwork.HandlePacket(reader, whoAmI);
         }
 
-        // TODO: consider using steam id instead
         // On mod load, get an instance to use for creating packets and create save directory
         public override void Load()
         {

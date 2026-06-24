@@ -209,9 +209,8 @@ namespace ScuffedAnticheatMod.Network
         public static bool[] allowedPlayers { get; protected set; } = new bool[255];
         public static List<DeletedItem> deletedItems { get; protected set; } = new List<DeletedItem>();
 
+        // TODO: No checks for after initial join or packet spoofing. Not sure if that's really feasible
         // Sorts SAM packets based off of their message type
-        // TODO: inventory checks, mod checks, and Location tracking all rely on user self-identification and could be circumvented. not really sure if anticheat features are possible lol
-        // TODO: Verify that inventory was changed
         public static void HandlePacket(BinaryReader reader, int playerNumber)
         {
             MessageType msgType = (MessageType)reader.ReadByte();
@@ -265,7 +264,6 @@ namespace ScuffedAnticheatMod.Network
             return item1.type == item2.type && item1.prefix == item2.prefix && item1.stack == item2.stack;
         }
 
-        // TODO: load deleted items
         // Return all deleted items in player inventory
         public static List<Item> GetPlayerItems(int whoAmI)
         {

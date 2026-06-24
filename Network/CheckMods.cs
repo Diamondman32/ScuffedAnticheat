@@ -14,7 +14,6 @@ namespace ScuffedAnticheatMod.Network
 
         /*  CLIENT  */
         // Sends a hash of all enabled mods to server
-        // TODO this could potentially be sabotaged
         public static void SendPacket()
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
