@@ -1,35 +1,25 @@
 using Terraria.ModLoader;
 using Terraria;
-using Terraria.ID;
-using ScuffedAnticheatMod.Network;
 using ScuffedAnticheatMod.UI;
+using System.Collections.Generic;
 
 namespace ScuffedAnticheatMod
 {
     public class SAMPlayer : ModPlayer
     {
-        public PlayerInventory oldInventory = new PlayerInventory("uninitialized");
-
-        // When player enters world, tell server to check their inventory
+        public IReadOnlyDictionary<string, List<Item>> startingItems { get; private set; }
+        public override void ModifyStartingInventory(IReadOnlyDictionary<string, List<Item>> itemsByMod, bool mediumCoreDeath)
+        {
+            startingItems = itemsByMod;
+        }
+        // When player enters world, disable possible previously enabled UI
         public override void OnEnterWorld(Player player)
         {
             ModContent.GetInstance<UIOverlay>().DisablePlayerList();
         }
 
-        // Every update (60 fps?) checks inventory for modifications
-        // TODO: Maybe reduce the amount of inv checks (config?)
-        // TODO: Maybe add ON hooks in terraria instead
-        public override void PostUpdate()
-        {
-            // if (Main.netMode == NetmodeID.MultiplayerClient)
-            // {
-            //     if (oldInventory.playerName == "uninitialized")
-            //         oldInventory = new PlayerInventory(Main.LocalPlayer);
-            //     UpdateItemSaveData.UpdateInventoryDifferences(Main.myPlayer, oldInventory); // oldInventory is modified in function
-            // }
-        }
-
         // Called after item data is synced with server on player join
+        // TODO: I don't know if I removed this function or plan to add it
         public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
         {
             if (Main.dedServ)

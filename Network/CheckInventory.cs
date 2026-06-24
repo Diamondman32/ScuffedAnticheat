@@ -1,13 +1,12 @@
-using System.IO;
 using System.Threading.Tasks;
 using Terraria.ID;
 using Microsoft.Xna.Framework;
-using MonoMod.Utils;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Localization;
 using System.Collections.Generic;
-using Terraria.ModLoader;
+
+// TODO: Default items not being saved to db
 
 namespace ScuffedAnticheatMod.Network
 {

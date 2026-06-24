@@ -13,7 +13,6 @@ namespace ScuffedAnticheatMod.Network
         UpdateDeletedItemSaveData, SyncDeletedItems, RequestLocation, ReceiveLocation }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
-    // TODO: Item cloning for deleted items can try to access modded items that are no longer enabled
     // Structs
     public class EzItem
     {
@@ -66,34 +65,34 @@ namespace ScuffedAnticheatMod.Network
         public EzItem[] miscDyes { get; }
         public EzItem[] trash { get; }
 
-        private void Initialize()
+        private void SetInventoryDefaults()
         {
-            // Starter Items
-            inventory[0] = new(new(ItemID.CopperShortsword));
-            inventory[1] = new(new(ItemID.CopperPickaxe));
-            inventory[2] = new(new(ItemID.CopperAxe));
-            if(ModContent.TryFind("CalamityMod", "StarterBag", out ModItem item))
-                inventory[3] = new(item.Item);
-            else
-                inventory[3] = new(new(ItemID.None));
+            List<Item> startingItems = PlayerLoader.GetStartingItems(new Player(), [ new(ItemID.CopperShortsword), new(ItemID.CopperPickaxe), new(ItemID.CopperAxe) ]);
 
-            for(int i=4;i<inventory.Length;i++)
+            for (int i = 0; i < inventory.Length; ++i)
+            {
+                if (i < startingItems.Count)
+                    inventory[i] = new(startingItems[i]);
+                else
+                    inventory[i] = new(new(ItemID.None));
+            }
+            for(int i = 4; i < inventory.Length; ++i)
                 inventory[i] = new(new(ItemID.None));
-            for(int i=0;i<bank1.Length;i++)
+            for(int i = 0; i < bank1.Length; ++i)
                 bank1[i] = new(new(ItemID.None));
-            for(int i=0;i<bank2.Length;i++)
+            for(int i = 0; i < bank2.Length; ++i)
                 bank2[i] = new(new(ItemID.None));
-            for(int i=0;i<bank3.Length;i++)
+            for(int i = 0; i < bank3.Length; ++i)
                 bank3[i] = new(new(ItemID.None));
-            for(int i=0;i<bank4.Length;i++)
+            for(int i = 0; i < bank4.Length; ++i)
                 bank4[i] = new(new(ItemID.None));
-            for(int i=0;i<armor.Length;i++)
+            for(int i = 0; i < armor.Length; ++i)
                 armor[i] = new(new(ItemID.None));
-            for(int i=0;i<dye.Length;i++)
+            for(int i = 0; i < dye.Length; ++i)
                 dye[i] = new(new(ItemID.None));
-            for(int i=0;i<miscEquips.Length;i++)
+            for(int i = 0; i < miscEquips.Length; ++i)
                 miscEquips[i] = new(new(ItemID.None));
-            for(int i=0;i<miscDyes.Length;i++)
+            for(int i = 0; i < miscDyes.Length; ++i)
                 miscDyes[i] = new(new(ItemID.None));
             trash[0] = new(new(ItemID.None));
         }
@@ -126,34 +125,34 @@ namespace ScuffedAnticheatMod.Network
         public PlayerInventory(string playerName) : this()
         {
             this.playerName = playerName;
-            Initialize();
+            SetInventoryDefaults();
         }
         public PlayerInventory(string playerName, string guid) : this()
         {
             this.playerName = playerName;
             this.guid = guid;
-            Initialize();
+            SetInventoryDefaults();
         }
         public PlayerInventory(Player player) : this()
         {
             playerName = player.name;
-            for(int i=0;i<inventory.Length;i++)
+            for(int i = 0 ; i < inventory.Length; ++i)
                 inventory[i] = new(player.inventory[i]);
-            for(int i=0;i<bank1.Length;i++)
+            for(int i = 0 ; i < bank1.Length; ++i)
                 bank1[i] = new(player.bank.item[i]);
-            for(int i=0;i<bank2.Length;i++)
+            for(int i = 0 ; i < bank2.Length; ++i)
                 bank2[i] = new(player.bank2.item[i]);
-            for(int i=0;i<bank3.Length;i++)
+            for(int i = 0 ; i < bank3.Length; ++i)
                 bank3[i] = new(player.bank3.item[i]);
-            for(int i=0;i<bank4.Length;i++)
+            for(int i = 0 ; i < bank4.Length; ++i)
                 bank4[i] = new(player.bank4.item[i]);
-            for(int i=0;i<armor.Length;i++)
+            for(int i = 0 ; i < armor.Length; ++i)
                 armor[i] = new(player.armor[i]);
-            for(int i=0;i<dye.Length;i++)
+            for(int i = 0 ; i < dye.Length; ++i)
                 dye[i] = new(player.dye[i]);
-            for(int i=0;i<miscEquips.Length;i++)
+            for(int i = 0 ; i < miscEquips.Length; ++i)
                 miscEquips[i] = new(player.miscEquips[i]);
-            for(int i=0;i<miscDyes.Length;i++)
+            for(int i = 0 ; i < miscDyes.Length; ++i)
                 miscDyes[i] = new(player.miscDyes[i]);
             trash[0] = new(player.trashItem);
         }

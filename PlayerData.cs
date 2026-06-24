@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Data.Sqlite;
 using ScuffedAnticheatMod.Network;
 using Terraria;
 using Terraria.ID;
+using Terraria.ModLoader;
+
 // TODO: maybe make seperate files for worlds
 namespace ScuffedAnticheatMod
 {
@@ -12,12 +15,9 @@ namespace ScuffedAnticheatMod
         private static string dbPath { get; } = Path.Combine(Main.SavePath, "ScuffedAnticheatMod", "PlayerData.db");
         private static SqliteConnection connection;
 
-        public static SqliteConnection GetConnection()
+        private static SqliteConnection GetConnection()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
-            if (!File.Exists(dbPath))
-                File.Create(dbPath);
-
             SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}");
             connection.Open();
             return connection;
@@ -214,16 +214,13 @@ namespace ScuffedAnticheatMod
             ";
             cmd.ExecuteNonQuery();
 
-            // Add default player items
-            Player p = new Player();
-            Item[] defaults = p.inventory;
-
+            List<Item> startingItems = PlayerLoader.GetStartingItems(new Player(), [ new(ItemID.CopperShortsword), new(ItemID.CopperPickaxe), new(ItemID.CopperAxe) ]);
             int playerID = GetPlayerID(name, guid, transaction);
 
-            for (int i = 0; i < defaults.Length; i++)
+            for (int i = 0; i < startingItems.Count; i++)
             {
-                if (defaults[i].type != ItemID.None)
-                    UpsertItem(playerID, new EzItem(defaults[i]), i, transaction);
+                if (startingItems[i].type != ItemID.None)
+                    UpsertItem(playerID, new EzItem(startingItems[i]), i, transaction);
             }
 
             transaction.Commit();
