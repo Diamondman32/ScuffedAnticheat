@@ -6,8 +6,10 @@ using System;
 using System.Reflection;
 using SQLitePCL;
 using Terraria;
-using Terraria.ID;
 using Terraria.Localization;
+using Terraria.Chat;
+using Microsoft.Xna.Framework;
+using Terraria.ID;
 
 namespace ScuffedAnticheatMod;
 
@@ -26,12 +28,11 @@ internal class SAMModSystem : ModSystem
     {
         while (pendingClients.TryDequeue(out int playerNumber))
         {
-            // Negative means kick
-            // Note: there are kick messages earlier so this will likely never be used
+            // Negative playerNumber means the client ran out of time to authenticate with server
             if (playerNumber < 0)
             {
-                playerNumber = -playerNumber + 1;
-                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("[ScuffedAnticheatMod] Client failed to authenticate"));
+                playerNumber = -playerNumber - 1;
+                NetMessage.SendData(MessageID.Kick, playerNumber, -1, NetworkText.FromLiteral("Join Request Rejected: Client failed to authenticate with the server."));
                 continue;
             }
 
