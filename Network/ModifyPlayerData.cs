@@ -73,7 +73,6 @@ namespace ScuffedAnticheatMod.Network
                     break;
             }
         }
-        // TODO: Move client key in sam folder
         // TODO: track position
         public static async Task WaitForActivePlayer(Item item)
         {

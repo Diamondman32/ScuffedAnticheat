@@ -7,8 +7,8 @@ namespace ScuffedAnticheatMod
     public class Guid
     {
         public static string guid { get; private set; }
-        private static string KeyFilePath { get; } = Main.SavePath + Path.DirectorySeparatorChar + "AnticheatClientKey" + ".json";
-        private static string FileHeader { get; } =
+        private static string keyPath { get; } = Path.Combine(Main.SavePath, "ScuffedAnticheatMod", "AnticheatClientKey.json");
+        private static string fileHeader { get; } =
             "Note: If this key is lost, the server will not be able to identify your player and your server-side player data will not be accessible."
             + Environment.NewLine
             + "To recover your server-side character, the server host will have to go into AnticheatCharacterData.json on the host machine, find your character, and send you your old key so you can replace the key below."
@@ -21,16 +21,17 @@ namespace ScuffedAnticheatMod
         // Creates a new UUID and puts that in the file
         public static void CreateKey()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(keyPath));
             guid = System.Guid.NewGuid().ToString();
-            using StreamWriter outputFile = new(KeyFilePath);
-            outputFile.WriteLine(FileHeader + guid);
+            using StreamWriter outputFile = new(keyPath);
+            outputFile.WriteLine(fileHeader + guid);
             outputFile.Close();
         }
 
         // Checks for key (any non-whitespace in file after char 321)
         public static bool HasKey()
         {
-            if(File.Exists(KeyFilePath))
+            if(File.Exists(keyPath))
                 Deserialize();
             return !string.IsNullOrWhiteSpace(guid);
         }
@@ -38,7 +39,7 @@ namespace ScuffedAnticheatMod
         // Retrieves stored guid string
         private static void Deserialize()
         {
-            using StreamReader r = new(KeyFilePath);
+            using StreamReader r = new(keyPath);
             string guidTemp = r.ReadToEnd();
             r.Close();
 
