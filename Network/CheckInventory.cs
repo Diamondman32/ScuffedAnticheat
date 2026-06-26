@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Terraria.ID;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Chat;
@@ -11,7 +10,6 @@ namespace ScuffedAnticheatMod.Network
     public class CheckInventory : SAMNetwork
     {
         /*  SERVER  */
-        // TODO: Send packet that opens inventory if item is saved in 58
         // Checks entire inventory against save data. Sends ReplaceItem packet if incorrect and adds the "deleted" item to its own save data
         public static void ProcessRequest(int playerNumber)
         {
@@ -22,37 +20,12 @@ namespace ScuffedAnticheatMod.Network
             List<EzItem> itemsDeleted = new List<EzItem>();
             List<EzItem> itemsAdded = new List<EzItem>();
 
-            // Main.player[0].inventory[40] = new Item(type);
-            // if (type != 0)
-            //     NetMessage.SendData(5, 0, 256, null, 0, 40, 0);
-
             for (int i = 0; i < playerInventory.inventory.Length; i++)
-                if (i == 58)
-                { } // inst = "packet that open inventory etc";
-                else if (IsIdentical(playerInventory.inventory[i], savedInventory.inventory[i]))
+                if (!IsIdentical(playerInventory.inventory[i], savedInventory.inventory[i]))
                 {
-                    if (savedInventory.inventory[58].type != ItemID.None && savedInventory.inventory[i].type == ItemID.None)
-                    {
-                        savedInventory.inventory[i] = savedInventory.inventory[58];
-                        savedInventory.inventory[58] = new EzItem(new Item(ItemID.None));
-                    }
-                }
-                else
-                {
-                    if (savedInventory.inventory[58].type != ItemID.None && savedInventory.inventory[i].type == ItemID.None)
-                    {
-                        if (!IsIdentical(playerInventory.inventory[i], savedInventory.inventory[58]))
-                            itemsDeleted.Add(playerInventory.inventory[i]);
-                        SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[58]);
-                        savedInventory.inventory[i] = savedInventory.inventory[58];
-                        savedInventory.inventory[58] = new EzItem(new Item(ItemID.None));
-                    }
-                    else
-                    {
-                        itemsAdded.Add(savedInventory.inventory[i]);
-                        itemsDeleted.Add(playerInventory.inventory[i]);
-                        SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[i]);
-                    }
+                    itemsAdded.Add(savedInventory.inventory[i]);
+                    itemsDeleted.Add(playerInventory.inventory[i]);
+                    SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank1.Length; i++)
@@ -165,6 +138,7 @@ namespace ScuffedAnticheatMod.Network
 
             deletedItems.ForEach(PlayerData.AddDeletedItem);
 
+            // TODO: Get rid of goofy ahh waiting logic and replace it with a hook
             // Async code that waits until player join for a max of 60 seconds to send message (so msg is not sent before the player joins)
             _ = Task.Run(async () =>
             {

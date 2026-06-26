@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader.IO;
@@ -19,30 +20,26 @@ namespace ScuffedAnticheatMod.Network
 
                 var packet = ScuffedAnticheatMod.instance.GetPacket();
                 packet.Write((byte)MessageType.ModifyPlayerData);
-
-                byte category = reader.ReadByte();
-                packet.Write(category);
-                if((ItemCategory)category != ItemCategory.FindFirstOpenInv)
-                    packet.Write(reader.ReadByte());
-
+                packet.Write(reader.ReadByte());
+                packet.Write(reader.ReadByte());
                 ItemIO.Send(ItemIO.Receive(reader, true, true), packet, true, true);
+
                 packet.Send(targetNum);
                 return;
             }
 
             // CLIENT
             ItemCategory itemCategory = (ItemCategory)reader.ReadByte();
-
-            int itemIndex = 10000;
-            if(itemCategory != ItemCategory.FindFirstOpenInv)
-                itemIndex = reader.ReadByte();
-            
+            int itemIndex = reader.ReadByte();
             Item newItem = ItemIO.Receive(reader, true, true);
 
             switch(itemCategory)
             {
                 case ItemCategory.Inventory:
-                    Main.LocalPlayer.inventory[itemIndex] = newItem;
+                    if (itemIndex == 58)
+                        _ = WaitForActivePlayer(newItem);
+                    else
+                        Main.LocalPlayer.inventory[itemIndex] = newItem;
                     break;
                 case ItemCategory.Bank1:
                     Main.LocalPlayer.bank.item[itemIndex] = newItem;
@@ -76,6 +73,30 @@ namespace ScuffedAnticheatMod.Network
                     break;
             }
         }
+        // TODO: Move client key in sam folder
+        // TODO: track position
+        public static async Task WaitForActivePlayer(Item item)
+        {
+            Player player = Main.LocalPlayer;
+            _ = Task.Run(async () =>
+            {
+                int timeout = 60000;
+                int interval = 1000;
+                int elapsed = 0;
+
+                while ((player == null || !player.active) && elapsed < timeout)
+                {
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                }
+
+                if (elapsed < timeout && player != null)
+                {
+                    Main.playerInventory = true;
+                    Main.mouseItem = item;
+                }
+            });
+        }
 
         /* CLIENT */
         // Sends packet with desired item to return to player
@@ -89,6 +110,7 @@ namespace ScuffedAnticheatMod.Network
                 packet.Write((byte)MessageType.ModifyPlayerData);
                 packet.Write((byte)targetNum);
                 packet.Write((byte)ItemCategory.FindFirstOpenInv);
+                packet.Write((byte)0); // not needed
                 ItemIO.Send(item, packet, true, true);
                 packet.Send();
             }
