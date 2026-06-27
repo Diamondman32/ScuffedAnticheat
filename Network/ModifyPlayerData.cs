@@ -73,7 +73,6 @@ namespace ScuffedAnticheatMod.Network
                     break;
             }
         }
-        // TODO: track position
         public static async Task WaitForActivePlayer(Item item)
         {
             Player player = Main.LocalPlayer;

@@ -27,7 +27,7 @@ namespace ScuffedAnticheatMod
         {
             connection = GetConnection();
 
-            SqliteCommand playerTable = connection.CreateCommand();
+            using SqliteCommand playerTable = connection.CreateCommand();
             playerTable.CommandText =
             @"
                 CREATE TABLE IF NOT EXISTS Players (
@@ -41,7 +41,7 @@ namespace ScuffedAnticheatMod
             ";
             playerTable.ExecuteNonQuery();
 
-            SqliteCommand itemTable = connection.CreateCommand();
+            using SqliteCommand itemTable = connection.CreateCommand();
             itemTable.CommandText =
             @"
                 CREATE TABLE IF NOT EXISTS Items (
@@ -61,7 +61,7 @@ namespace ScuffedAnticheatMod
             ";
             itemTable.ExecuteNonQuery();
 
-            SqliteCommand deletedItemTable = connection.CreateCommand();
+            using SqliteCommand deletedItemTable = connection.CreateCommand();
             deletedItemTable.CommandText =
             @"
                 CREATE TABLE IF NOT EXISTS DeletedItems (
@@ -80,7 +80,7 @@ namespace ScuffedAnticheatMod
         public static PlayerInventory LoadPlayer(string name, string guid)
         {
             // Get playerID to find items and get location
-            SqliteCommand loadPlayer = connection.CreateCommand();
+            using SqliteCommand loadPlayer = connection.CreateCommand();
             loadPlayer.Parameters.AddWithValue("$guid", guid);
             loadPlayer.Parameters.AddWithValue("$name", name);
             loadPlayer.Parameters.AddWithValue("$worldID", Main.worldID);
@@ -105,7 +105,7 @@ namespace ScuffedAnticheatMod
                 float yPos = loadPlayerReader.GetFloat(2);
 
                 // Use playerID to get items
-                SqliteCommand loadItems = connection.CreateCommand();
+                using SqliteCommand loadItems = connection.CreateCommand();
                 loadItems.Parameters.AddWithValue("$playerID", loadPlayerReader.GetInt32(0));
                 loadItems.CommandText =
                 @"
@@ -200,7 +200,7 @@ namespace ScuffedAnticheatMod
             using SqliteTransaction transaction = connection.BeginTransaction();
 
             // Add new player
-            SqliteCommand cmd = connection.CreateCommand();
+            using SqliteCommand cmd = connection.CreateCommand();
             cmd.Transaction = transaction;
             cmd.Parameters.AddWithValue("$guid", guid);
             cmd.Parameters.AddWithValue("$name", name);
@@ -228,7 +228,7 @@ namespace ScuffedAnticheatMod
 
         private static int GetPlayerID(string name, string guid, SqliteTransaction transaction)
         {
-            SqliteCommand cmd = connection.CreateCommand();
+            using SqliteCommand cmd = connection.CreateCommand();
             cmd.Transaction = transaction;
             cmd.Parameters.AddWithValue("$name", name);
             cmd.Parameters.AddWithValue("$guid", guid);
@@ -259,7 +259,7 @@ namespace ScuffedAnticheatMod
         private static void UpsertItem(int playerID, EzItem item, int slot, SqliteTransaction transaction)
         {
             // Update or remove row
-            SqliteCommand cmd = connection.CreateCommand();
+            using SqliteCommand cmd = connection.CreateCommand();
             cmd.Transaction = transaction;
             cmd.Parameters.AddWithValue("$slot", slot);
             cmd.Parameters.AddWithValue("$playerID", playerID);
@@ -297,10 +297,45 @@ namespace ScuffedAnticheatMod
             cmd.ExecuteNonQuery();
         }
 
+        public static void UpdatePlayerLocations(List<(string name, string guid, float xPos, float yPos)> playersPositions)
+        {
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            using var cmd = connection.CreateCommand();
+            cmd.Transaction = transaction;
+
+            var nameParam = cmd.Parameters.Add("$name", SqliteType.Text);
+            var guidParam = cmd.Parameters.Add("$guid", SqliteType.Text);
+            var xPosParam = cmd.Parameters.Add("$xPos", SqliteType.Real);
+            var yPosParam = cmd.Parameters.Add("$yPos", SqliteType.Real);
+            cmd.Parameters.AddWithValue("$worldID", Main.worldID);
+            
+            cmd.CommandText = 
+            @"
+                UPDATE Players
+                SET XPos = $xPos,
+                    YPos = $yPos
+                WHERE
+                    ClientID = $guid
+                    AND PlayerName = $name
+                    AND WorldID = $worldID
+            ";
+
+            foreach (var (name, guid, xPos, yPos) in playersPositions)
+            {
+                nameParam.Value = name;
+                guidParam.Value = guid;
+                xPosParam.Value = xPos;
+                yPosParam.Value = yPos;
+
+                cmd.ExecuteNonQuery();
+            }
+            transaction.Commit();
+        }
+
         public static void AddDeletedItem(DeletedItem dItem)
         {
             using SqliteTransaction transaction = connection.BeginTransaction();
-            SqliteCommand cmd = connection.CreateCommand();
+            using SqliteCommand cmd = connection.CreateCommand();
             cmd.Transaction = transaction;
             cmd.Parameters.AddWithValue("$type", dItem.item.type);
             cmd.Parameters.AddWithValue("$stack", dItem.item.stack);
@@ -320,7 +355,7 @@ namespace ScuffedAnticheatMod
         public static void RemoveDeletedItem(DeletedItem dItem)
         {
             using SqliteTransaction transaction = connection.BeginTransaction();
-            SqliteCommand cmd = connection.CreateCommand();
+            using SqliteCommand cmd = connection.CreateCommand();
             cmd.Transaction = transaction;
             cmd.Parameters.AddWithValue("$type", dItem.item.type);
             cmd.Parameters.AddWithValue("$stack", dItem.item.stack);

@@ -8,20 +8,27 @@ using SQLitePCL;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ID;
+using System.Threading;
+using System.Threading.Tasks;
+using ScuffedAnticheatMod.Network;
 
 namespace ScuffedAnticheatMod;
 
+// SERVER ONLY
 [Autoload(Side = ModSide.Server)]
 internal class SAMModSystem : ModSystem
 {
     private readonly Dictionary<string, IntPtr> loadedLibs = new();
     private static readonly Queue<int> pendingClients = new();
+    private static readonly PeriodicTimer timer = new(TimeSpan.FromSeconds(3));
+    // TODO: Finish config file with less hardcoded values like this one  ^^^
 
     public static void EnqueueJoiningPlayer(int playerNumber)
     {
         pendingClients.Enqueue(playerNumber);
     }
 
+    // Check for any approved clients that need to be accepted into the server
     public override void PostUpdateEverything()
     {
         while (pendingClients.TryDequeue(out int playerNumber))
@@ -39,6 +46,28 @@ internal class SAMModSystem : ModSystem
         }
     }
 
+    // Sets up the timer that periodically updates stored player locations
+    public override void OnWorldLoad()
+    {
+        List<(string name, string guid, float xPos, float yPos)> playerPositions = new();
+        _ = Task.Run(async () =>
+        {
+            while(await timer.WaitForNextTickAsync())
+            {
+                playerPositions.Clear();
+                foreach(Player player in Main.player)
+                {
+                    if (player != null && player.active)
+                    {
+                        playerPositions.Add((player.name, SAMNetwork.playerInventories[player.whoAmI].guid, player.position.X, player.position.Y));
+                    }
+                }
+                PlayerData.UpdatePlayerLocations(playerPositions);
+            }
+        });
+    }
+
+    // Load SQLite 
     public override void Load()
     {
         Directory.CreateDirectory(Path.Combine(Main.SavePath, "ScuffedAnticheatMod"));

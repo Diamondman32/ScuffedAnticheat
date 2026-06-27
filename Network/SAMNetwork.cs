@@ -10,7 +10,7 @@ namespace ScuffedAnticheatMod.Network
 {
     // Enums
     public enum MessageType { SendHandshake, ReceiveHandshake, CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems,
-        UpdateDeletedItemSaveData, SyncDeletedItems, RequestLocation, ReceiveLocation }
+        UpdateDeletedItemSaveData, SyncDeletedItems, ReceiveLocation }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
@@ -47,6 +47,7 @@ namespace ScuffedAnticheatMod.Network
             this.favorited = favorited;
         }
     }
+    // TODO: Maybe track sqlite player row id so it doesn't have to be rediscovered each time
     public class PlayerInventory
     {
 		public string playerName { get; }
@@ -95,12 +96,6 @@ namespace ScuffedAnticheatMod.Network
             for(int i = 0; i < miscDyes.Length; ++i)
                 miscDyes[i] = new(new(ItemID.None));
             trash[0] = new(new(ItemID.None));
-        }
-        public void UpdatePosition(int playerNum)
-        {
-            Player player = Main.player[playerNum];
-            xPos = player.position.X;
-            yPos = player.position.Y;
         }
 
         // Constructors
@@ -240,6 +235,9 @@ namespace ScuffedAnticheatMod.Network
                     break;
                 case MessageType.SyncDeletedItems:
                     SyncDeletedItems.ProcessRequest();
+                    break;
+                case MessageType.ReceiveLocation:
+                    UpdateLocation.ProcessRequest(ref reader);
                     break;
             }
         }

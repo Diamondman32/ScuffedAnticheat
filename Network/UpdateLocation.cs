@@ -1,7 +1,7 @@
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Terraria;
-
 
 namespace ScuffedAnticheatMod.Network
 {
@@ -22,9 +22,32 @@ namespace ScuffedAnticheatMod.Network
 
         /*  CLIENT  */
         // Teleports player to last location
+        // TODO: doubly need to get rid of waiting logic so there is no screen pull on world join
         public static void ProcessRequest(ref BinaryReader reader)
         {
-            Main.LocalPlayer.Teleport(reader.ReadVector2(), -1);
+            _ = WaitForActivePlayer(reader.ReadVector2());
+        }
+
+        private static async Task WaitForActivePlayer(Vector2 position)
+        {
+            Player player = Main.LocalPlayer;
+            _ = Task.Run(async () =>
+            {
+                int timeout = 60000;
+                int interval = 1000;
+                int elapsed = 0;
+
+                while ((player == null || !player.active) && elapsed < timeout)
+                {
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                }
+
+                if (elapsed < timeout && player != null)
+                {
+                    Main.LocalPlayer.Teleport(position, -1);
+                }
+            });
         }
     }
 }
