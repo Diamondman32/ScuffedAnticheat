@@ -1,7 +1,6 @@
 using Terraria.ModLoader;
 using Terraria;
 using ScuffedAnticheatMod.UI;
-using ScuffedAnticheatMod.Network;
 
 namespace ScuffedAnticheatMod
 {

@@ -74,14 +74,5 @@ namespace ScuffedAnticheatMod.Network
                 PlayerData.UpsertItem(player.name, guids[player.whoAmI], new EzItem(player.inventory[slotIndex]), slotType);
             }
         }
-
-        /*  CLIENT  */
-        public static void SendPacket()
-        {
-            var packet = ScuffedAnticheatMod.instance.GetPacket();
-            packet.Write((byte)MessageType.CheckMods);
-
-            packet.Send(255); // Send to server
-        }
     }
 }

@@ -93,11 +93,14 @@ namespace ScuffedAnticheatMod
         {
             instance = this;
             Directory.CreateDirectory(Main.SavePath);
-            if (!Main.dedServ && !Guid.HasKey())
+            if (!Main.dedServ)
             {
-                Guid.CreateKey();
+                if (!Guid.HasKey()) Guid.CreateKey();
+
+                // IL
+                On.Terraria.Player.Spawn += OnEnterWorld.ChangeSpawnLocation;
             }
-            else if (Main.dedServ)
+            else
             {
                 PlayerData.Initialize();
                 // UpdateItemSaveData.Autosave();
@@ -108,6 +111,12 @@ namespace ScuffedAnticheatMod
                 MethodInfo method = typeof(MessageBuffer).GetMethod("GetData");
                 HookEndpointManager.Modify(method, ILEdits.GetData_ILEdit);
             }
+        }
+
+        public override void Unload()
+        {
+            if (!Main.dedServ)
+                On.Terraria.Player.Spawn -= OnEnterWorld.ChangeSpawnLocation;
         }
     }
 }

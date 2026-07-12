@@ -25,29 +25,7 @@ namespace ScuffedAnticheatMod.Network
         // TODO: doubly need to get rid of waiting logic so there is no screen pull on world join
         public static void ProcessRequest(ref BinaryReader reader)
         {
-            _ = WaitForActivePlayer(reader.ReadVector2());
-        }
-
-        private static async Task WaitForActivePlayer(Vector2 position)
-        {
-            Player player = Main.LocalPlayer;
-            _ = Task.Run(async () =>
-            {
-                int timeout = 60000;
-                int interval = 1000;
-                int elapsed = 0;
-
-                while ((player == null || !player.active) && elapsed < timeout)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                }
-
-                if (elapsed < timeout && player != null)
-                {
-                    Main.LocalPlayer.Teleport(position, -1);
-                }
-            });
+            OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.UpdateLocation, reader.ReadVector2());
         }
     }
 }
