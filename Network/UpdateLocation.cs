@@ -22,7 +22,6 @@ namespace ScuffedAnticheatMod.Network
 
         /*  CLIENT  */
         // Teleports player to last location
-        // TODO: doubly need to get rid of waiting logic so there is no screen pull on world join
         public static void ProcessRequest(ref BinaryReader reader)
         {
             OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.UpdateLocation, reader.ReadVector2());
