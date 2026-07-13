@@ -47,7 +47,6 @@ namespace ScuffedAnticheatMod.Network
             this.favorited = favorited;
         }
     }
-    // TODO: Maybe track sqlite player row id so it doesn't have to be rediscovered each time
     public class PlayerInventory
     {
 		public string playerName { get; }

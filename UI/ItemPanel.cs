@@ -8,6 +8,7 @@ using Terraria.GameContent.UI.Elements;
 using ScuffedAnticheatMod.Network;
 using Terraria.UI;
 using ScuffedAnticheatMod.UI.UIHelpers;
+using System.Diagnostics;
 
 namespace ScuffedAnticheatMod.UI
 {
@@ -166,13 +167,13 @@ namespace ScuffedAnticheatMod.UI
 			itemList.SetPadding(0);
             itemList.SetScrollbar(scrollBar);
 			itemSlotBackgrounds = new List<UIPanel>();
-			AddItems();
+			_ = AddItems();
 			panel.Append(itemList);
 		}
 
 		// Async code that adds items when received
 		// TODO: This code definitely sucks and needs to be refactored
-		private async void AddItems()
+		private async Task AddItems()
 		{
 			RequestDeletedItems.AskNicelyForPlayersDeletedItems(player.whoAmI);
 
@@ -181,76 +182,76 @@ namespace ScuffedAnticheatMod.UI
 			itemSlotBackgrounds.Clear();
 			itemList.Clear();
 
-			await Task.Run(() =>
+			var stopwatch = Stopwatch.StartNew();
+
+			int i = 0;
+			List<Item> items = new List<Item>();
+
+			// Check for items received status and iteration progress. Gives up after 10 secs of not receiving any items
+			while ((!ReceiveDeletedItems.itemsReceived || ReceiveDeletedItems.playerDeletedItems.Count != i) && stopwatch.Elapsed < TimeSpan.FromSeconds(10))
 			{
-				bool timeHasRunOut = false;
-				var EndTime = (bool b) => timeHasRunOut = true;
-				Timer timer = new((Object stateInfo) => { }, EndTime, 10000, Timeout.Infinite);
-
-				int i = 0;
-				List<Item> items = new List<Item>();
-
-				// check for items received status and iteration progress. Gives up after 10 secs
-				while ((!ReceiveDeletedItems.itemsReceived || ReceiveDeletedItems.playerDeletedItems.Count != i) && !timeHasRunOut)
+				// Update as many items into the list UI as possible. If waiting on items, delay a little
+				if (i < ReceiveDeletedItems.playerDeletedItems.Count)
 				{
-					if (i < ReceiveDeletedItems.playerDeletedItems.Count)
+					// Item Rows
+					if (itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
 					{
-						// Item Rows
-						if (itemSlotBackgrounds.Count / MAX_ITEMS_IN_ROW >= itemSlotRows.Count)
+						itemSlotRows.Add(new UIPanel()
 						{
-							itemSlotRows.Add(new UIPanel()
-							{
-								BackgroundColor = Color.Transparent,
-								BorderColor = Color.Transparent,
-								Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-								Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
-							});
-							itemSlotRows[^1].SetPadding(0);
-							itemList.Add(itemSlotRows[^1]);
-						}
-
-						// Set up selected map thingy
-						if (i >= selectedItemMap.Count)
-							selectedItemMap.Add(false);
-
-						// Item Backgrounds
-						itemSlotBackgrounds.Add(new UIPanel()
-						{
-							BackgroundColor = new Color(0, 0, 0) * 0.5f,
-							BorderColor = selectedItemMap[i] ? new Color(255, 255, 255) * 0.7f : new Color(0, 0, 0) * 0.7f,
-							Left = StyleDimension.FromPixelsAndPercent(0f, 1f / MAX_ITEMS_IN_ROW * (i % MAX_ITEMS_IN_ROW)),
-							Width = StyleDimension.FromPixelsAndPercent(40f, 0f),
+							BackgroundColor = Color.Transparent,
+							BorderColor = Color.Transparent,
+							Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
 							Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
 						});
-						itemSlotBackgrounds[i].SetPadding(0);
-						itemSlotBackgrounds[^1].OnClick += itemSlotBackgrounds_onClick;
-						itemSlotBackgrounds[i].OnMouseOver += itemSlotBackgrounds_onHover;
-						itemSlotBackgrounds[i].OnMouseOut += itemSlotBackgrounds_onStopHover;
-						itemSlotRows[^1].Append(itemSlotBackgrounds[i]);
-
-						// Items
-						items.Add(ReceiveDeletedItems.playerDeletedItems[i]);
-						uiItemSlots.Add(new UIItemDisplay(items[i], 14)
-						{
-							Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
-							Height = StyleDimension.FromPixelsAndPercent(0f, 1f)
-						});
-						uiItemSlots[i].SetPadding(0);
-						itemSlotBackgrounds[i].Append(uiItemSlots[i]);
-
-						i++;
+						itemSlotRows[^1].SetPadding(0);
+						itemList.Add(itemSlotRows[^1]);
 					}
-				}
 
-				timer.Dispose();
-				if (timeHasRunOut)
-					Main.NewText("Item searching timed out", Color.Red);
-			});
+					// Set up selected map thingy
+					if (i >= selectedItemMap.Count)
+						selectedItemMap.Add(false);
+
+					// Item Backgrounds
+					itemSlotBackgrounds.Add(new UIPanel()
+					{
+						BackgroundColor = new Color(0, 0, 0) * 0.5f,
+						BorderColor = selectedItemMap[i] ? new Color(255, 255, 255) * 0.7f : new Color(0, 0, 0) * 0.7f,
+						Left = StyleDimension.FromPixelsAndPercent(0f, 1f / MAX_ITEMS_IN_ROW * (i % MAX_ITEMS_IN_ROW)),
+						Width = StyleDimension.FromPixelsAndPercent(40f, 0f),
+						Height = StyleDimension.FromPixelsAndPercent(40f, 0f)
+					});
+					itemSlotBackgrounds[i].SetPadding(0);
+					itemSlotBackgrounds[^1].OnClick += itemSlotBackgrounds_onClick;
+					itemSlotBackgrounds[i].OnMouseOver += itemSlotBackgrounds_onHover;
+					itemSlotBackgrounds[i].OnMouseOut += itemSlotBackgrounds_onStopHover;
+					itemSlotRows[^1].Append(itemSlotBackgrounds[i]);
+
+					// Items
+					items.Add(ReceiveDeletedItems.playerDeletedItems[i]);
+					uiItemSlots.Add(new UIItemDisplay(items[i], 14)
+					{
+						Width = StyleDimension.FromPixelsAndPercent(0f, 1f),
+						Height = StyleDimension.FromPixelsAndPercent(0f, 1f)
+					});
+					uiItemSlots[i].SetPadding(0);
+					itemSlotBackgrounds[i].Append(uiItemSlots[i]);
+
+					i++;
+					stopwatch.Restart();
+				}
+				else
+				{
+					await Task.Delay(10);
+				}
+			}
+
+			if (stopwatch.Elapsed >= TimeSpan.FromSeconds(10))
+				Main.NewText("Item searching timed out", Color.Red);
 		}
 
 		public void RefreshItemList()
 		{
-			AddItems();
+			_ = AddItems();
 		}
 
 		private void UIPanel_onHover(UIMouseEvent evt, UIElement element)
@@ -349,7 +350,7 @@ namespace ScuffedAnticheatMod.UI
 				selectedItemMap.Clear();
 
 			parent?.RemoveChild(confirmationPanel);
-			AddItems();
+			_ = AddItems();
 			parent?.Append(this);
 		}
     }
