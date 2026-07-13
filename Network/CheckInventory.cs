@@ -118,7 +118,7 @@ namespace ScuffedAnticheatMod.Network
             }
         }
         
-        // Adds item to its own json file for storage. Makes async function that waits till player join before breaking the news
+        // Adds item to its own json file for storage. Displays notification in chat
         private static void AddToDiscardPile(Player player, List<EzItem> items)
         {
             if(items.Count == 0)
@@ -138,25 +138,8 @@ namespace ScuffedAnticheatMod.Network
 
             deletedItems.ForEach(PlayerData.AddDeletedItem);
 
-            // TODO: Get rid of goofy ahh waiting logic and replace it with a hook
-            // Async code that waits until player join for a max of 60 seconds to send message (so msg is not sent before the player joins)
-            _ = Task.Run(async () =>
-            {
-                int timeout = 60000;
-                int interval = 1000;
-                int elapsed = 0;
-
-                while ((player == null || !player.active) && elapsed < timeout)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                }
-
-                if (elapsed < timeout && player != null)
-                {
-                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), Color.Purple);
-                }
-            });
+            // Send message at correct time on world join
+            OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.SendMessage, message);
         }
 
         // Sends packet to fix client inventory item

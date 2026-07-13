@@ -171,6 +171,7 @@ namespace ScuffedAnticheatMod.UI
 		}
 
 		// Async code that adds items when received
+		// TODO: This code definitely sucks and needs to be refactored
 		private async void AddItems()
 		{
 			RequestDeletedItems.AskNicelyForPlayersDeletedItems(player.whoAmI);

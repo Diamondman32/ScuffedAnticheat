@@ -37,7 +37,7 @@ namespace ScuffedAnticheatMod.Network
             {
                 case ItemCategory.Inventory:
                     if (itemIndex == 58)
-                        _ = WaitForActivePlayer(newItem);
+                        OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.InsertMouseItem, newItem);
                     else
                         Main.LocalPlayer.inventory[itemIndex] = newItem;
                     break;
@@ -72,28 +72,6 @@ namespace ScuffedAnticheatMod.Network
                     ReplaceFirstOpenSlot(newItem);
                     break;
             }
-        }
-        public static async Task WaitForActivePlayer(Item item)
-        {
-            Player player = Main.LocalPlayer;
-            _ = Task.Run(async () =>
-            {
-                int timeout = 60000;
-                int interval = 1000;
-                int elapsed = 0;
-
-                while ((player == null || !player.active) && elapsed < timeout)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                }
-
-                if (elapsed < timeout && player != null)
-                {
-                    Main.playerInventory = true;
-                    Main.mouseItem = item;
-                }
-            });
         }
 
         /* CLIENT */

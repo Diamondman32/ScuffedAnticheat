@@ -122,7 +122,7 @@ namespace ScuffedAnticheatMod.UI
 			panel.Append(itemList);
         }
         
-        // Async code that adds items when received
+        // Resets UI to a possibly different item selection
 		private void AddSelectedItems()
 		{
             List<UIItemSlot> uiItemSlots = new List<UIItemSlot>();
