@@ -121,6 +121,9 @@ namespace ScuffedAnticheatMod.Network
         // Adds item to its own json file for storage. Displays notification in chat
         private static void AddToDiscardPile(Player player, List<EzItem> items)
         {
+            for (int i = 0; i < items.Count; ++i)
+                if (items[i].type == 0)
+                    items.RemoveAt(i);
             if(items.Count == 0)
                 return;
 
@@ -131,8 +134,10 @@ namespace ScuffedAnticheatMod.Network
                     continue;
 
                 deletedItems.Add(new DeletedItem(item, player.name, guids[player.whoAmI]));
-                message += Lang.GetItemNameValue(item.type);
+                message += $"{Lang.GetItemNameValue(item.type)} ({item.stack}), ";
             }
+            if (message.Length != 0)
+                message = message[..^2];
 
             deletedItems.ForEach(PlayerData.AddDeletedItem);
 
