@@ -1,5 +1,4 @@
 using System.IO;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Terraria;
 
@@ -24,7 +23,7 @@ namespace ScuffedAnticheatMod.Network
         // Teleports player to last location
         public static void ProcessRequest(ref BinaryReader reader)
         {
-            OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.UpdateLocation, reader.ReadVector2());
+            OnEnterWorld.SetPlayerStarterLocation(reader.ReadVector2());
         }
     }
 }

@@ -10,7 +10,7 @@ namespace ScuffedAnticheatMod.Network
 {
     // Enums
     public enum MessageType { SendHandshake, ReceiveHandshake, CheckInventory, CheckMods, UpdateSaveData, ModifyPlayerData, DeletedItemRequest, ReceiveDeletedItems,
-        UpdateDeletedItemSaveData, SyncDeletedItems, ReceiveLocation }
+        UpdateDeletedItemSaveData, SyncDeletedItems, ReceiveLocation, DeletedItemNotification }
     public enum ItemCategory { Inventory, Bank1, Bank2, Bank3, Bank4, Armor, Dye, MiscEquips, MiscDyes, Trash, FindFirstOpenInv }
 
     // Structs
@@ -237,6 +237,9 @@ namespace ScuffedAnticheatMod.Network
                     break;
                 case MessageType.ReceiveLocation:
                     UpdateLocation.ProcessRequest(ref reader);
+                    break;
+                case MessageType.DeletedItemNotification:
+                    DeletedItemNotification.ProcessRequest(ref reader);
                     break;
             }
         }

@@ -1,9 +1,9 @@
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Localization;
 using System.Collections.Generic;
+using MonoMod.Utils;
 
 namespace ScuffedAnticheatMod.Network
 {
@@ -25,7 +25,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.inventory[i]);
                     itemsDeleted.Add(playerInventory.inventory[i]);
-                    SendPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Inventory, i, savedInventory.inventory[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank1.Length; i++)
@@ -33,7 +33,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank1[i]);
                     itemsDeleted.Add(playerInventory.bank1[i]);
-                    SendPacket(playerNumber, ItemCategory.Bank1, i, savedInventory.bank1[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Bank1, i, savedInventory.bank1[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank2.Length; i++)
@@ -41,7 +41,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank2[i]);
                     itemsDeleted.Add(playerInventory.bank2[i]);
-                    SendPacket(playerNumber, ItemCategory.Bank2, i, savedInventory.bank2[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Bank2, i, savedInventory.bank2[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank3.Length; i++)
@@ -49,7 +49,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank3[i]);
                     itemsDeleted.Add(playerInventory.bank3[i]);
-                    SendPacket(playerNumber, ItemCategory.Bank3, i, savedInventory.bank3[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Bank3, i, savedInventory.bank3[i]);
                 }
 
             for (int i = 0; i < playerInventory.bank4.Length; i++)
@@ -57,7 +57,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.bank4[i]);
                     itemsDeleted.Add(playerInventory.bank4[i]);
-                    SendPacket(playerNumber, ItemCategory.Bank4, i, savedInventory.bank4[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Bank4, i, savedInventory.bank4[i]);
                 }
 
             for (int i = 0; i < playerInventory.armor.Length; i++)
@@ -65,7 +65,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.armor[i]);
                     itemsDeleted.Add(playerInventory.armor[i]);
-                    SendPacket(playerNumber, ItemCategory.Armor, i, savedInventory.armor[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Armor, i, savedInventory.armor[i]);
                 }
 
             for (int i = 0; i < playerInventory.dye.Length; i++)
@@ -73,7 +73,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.dye[i]);
                     itemsDeleted.Add(playerInventory.dye[i]);
-                    SendPacket(playerNumber, ItemCategory.Dye, i, savedInventory.dye[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.Dye, i, savedInventory.dye[i]);
                 }
 
             for (int i = 0; i < playerInventory.miscEquips.Length; i++)
@@ -81,7 +81,7 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.miscEquips[i]);
                     itemsDeleted.Add(playerInventory.miscEquips[i]);
-                    SendPacket(playerNumber, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.MiscEquips, i, savedInventory.miscEquips[i]);
                 }
 
             for (int i = 0; i < playerInventory.miscDyes.Length; i++)
@@ -89,14 +89,14 @@ namespace ScuffedAnticheatMod.Network
                 {
                     itemsAdded.Add(savedInventory.miscDyes[i]);
                     itemsDeleted.Add(playerInventory.miscDyes[i]);
-                    SendPacket(playerNumber, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
+                    SendModifyPacket(playerNumber, ItemCategory.MiscDyes, i, savedInventory.miscDyes[i]);
                 }
 
             if (!IsIdentical(playerInventory.trash[0], savedInventory.trash[0]))
             {
                 itemsAdded.Add(savedInventory.trash[0]);
                 itemsDeleted.Add(playerInventory.trash[0]);
-                SendPacket(playerNumber, ItemCategory.Trash, 0, savedInventory.trash[0]);
+                SendModifyPacket(playerNumber, ItemCategory.Trash, 0, savedInventory.trash[0]);
             }
 
             RemoveIdenticalIndexes(itemsDeleted, itemsAdded);
@@ -124,32 +124,43 @@ namespace ScuffedAnticheatMod.Network
             if(items.Count == 0)
                 return;
 
-            string message = "";
+            string message = $"[ScuffedAnticheatMod] Player item mismatch with server.\nPlayer: {player.name}\nNew Items: ";
             foreach(EzItem item in items)
             {
                 if(item.type == 0)
                     continue;
 
                 deletedItems.Add(new DeletedItem(item, player.name, guids[player.whoAmI]));
-                message += $"{player.name}'s {Lang.GetItemNameValue(item.type)} broke causality and has been seized by local authorites.\n";
+                message += Lang.GetItemNameValue(item.type);
             }
-            if(message.EndsWith('\n'))
-                message = message[..^1];
 
             deletedItems.ForEach(PlayerData.AddDeletedItem);
 
-            // Send message at correct time on world join
-            OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.SendMessage, message);
+            // Send announcement to entire server
+            // TODO: config
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), Color.Purple);
+
+            // Notify player when they are done joining
+            SendDeletedInfoPacket(player.whoAmI, message);
         }
 
         // Sends packet to fix client inventory item
-        protected static void SendPacket(int target, ItemCategory category, int index, EzItem newItem)
+        protected static void SendModifyPacket(int target, ItemCategory category, int index, EzItem newItem)
         {
             var packet = ScuffedAnticheatMod.instance.GetPacket();
             packet.Write((byte)MessageType.ModifyPlayerData);
             packet.Write((byte)category);
             packet.Write((byte)index);
             Terraria.ModLoader.IO.ItemIO.Send(newItem.GetClone(), packet, true, true);
+            packet.Send(target);
+        }
+
+        // Sends information about all removed items to player
+        protected static void SendDeletedInfoPacket(int target, string message)
+        {
+            var packet = ScuffedAnticheatMod.instance.GetPacket();
+            packet.Write((byte)MessageType.DeletedItemNotification);
+            packet.WriteNullTerminatedString(message);
             packet.Send(target);
         }
     }

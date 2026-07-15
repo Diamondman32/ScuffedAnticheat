@@ -1,5 +1,4 @@
 using System.IO;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader.IO;
@@ -37,7 +36,7 @@ namespace ScuffedAnticheatMod.Network
             {
                 case ItemCategory.Inventory:
                     if (itemIndex == 58)
-                        OnEnterWorld.AddEnterWorldAction(OnEnterWorld.ActionTypes.InsertMouseItem, newItem);
+                        OnEnterWorld.SetMouseItem(newItem);
                     else
                         Main.LocalPlayer.inventory[itemIndex] = newItem;
                     break;

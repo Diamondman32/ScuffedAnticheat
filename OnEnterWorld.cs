@@ -1,53 +1,57 @@
 using Terraria;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using Terraria.Chat;
-using Terraria.Localization;
 
 namespace ScuffedAnticheatMod;
 
 public class OnEnterWorld
 {
-    public enum ActionTypes { SendMessage, InsertMouseItem, UpdateLocation }
-    private static readonly List<(ActionTypes, object)> onEnterWorldActions = new();
-    private static Item mouseItem;
+    private static readonly List<(string, Color)> playerNotifications = new();
+    private static Vector2? playerLocation = null;
+    private static Item mouseItem = null;
 
-    public static void AddEnterWorldAction(ActionTypes type, object data)
+    // Add message that is displayed in chat on player join
+    public static void AddChatNotification(string message, Color color)
     {
-        onEnterWorldActions.Add((type, data));
+        playerNotifications.Add((message, color));
     }
 
-    // TODO: If join is unsuccessful, some notifications may not go out that maybe should
+    // Set location that player is moved when they rejoin the world
+    public static void SetPlayerStarterLocation(Vector2 location)
+    {
+        playerLocation = location;
+    }
+
+    // Add mouse item that is put into the mouse item slot when the player joins
+    public static void SetMouseItem(Item item)
+    {
+        mouseItem = item;
+    }
+
+    // Detour of Player.Spawn that moves the player to their last known location and conditionally hooks PostUpdate if there are any messages or a mouseItem
     public static void ChangeSpawnLocation(On.Terraria.Player.orig_Spawn orig, Player self, PlayerSpawnContext context)
     {
         orig(self, context);
 
         if (context == PlayerSpawnContext.SpawningIntoWorld)
         {
-            foreach ((ActionTypes type, object data) in onEnterWorldActions)
+            if (playerLocation != null)
             {
-                switch (type)
-                {
-                    case ActionTypes.SendMessage:
-                        string message = (string) data;
-                        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), Color.Purple);
-                        break;
-                    case ActionTypes.InsertMouseItem:
-                        mouseItem = (Item) data;
-                        On.Terraria.Player.Update -= OnFirstUpdate;
-                        On.Terraria.Player.Update += OnFirstUpdate;
-                        break;
-                    case ActionTypes.UpdateLocation:
-                        Vector2 position = (Vector2) data;
-                        Main.LocalPlayer.Teleport(position, -1);
-                        Main.screenPosition = Main.LocalPlayer.position - new Vector2(Main.screenWidth / 2, Main.screenHeight / 2);
-                        break;
-                }
+                Main.LocalPlayer.Teleport((Vector2) playerLocation, -1);
+                Main.screenPosition = Main.LocalPlayer.position - new Vector2(Main.screenWidth / 2, Main.screenHeight / 2);
+                playerLocation = null;
+            }
+
+            if (playerNotifications.Count > 0 || mouseItem != null)
+            {
+                On.Terraria.Player.Update -= OnFirstUpdate;
+                On.Terraria.Player.Update += OnFirstUpdate;
             }
         }
-        onEnterWorldActions.Clear();
     }
+    // TODO: config: Concurrent save vs synced with world save
 
+    // Detour of Player.Update that finishes mouseItem and message work from above
     private static void OnFirstUpdate(On.Terraria.Player.orig_Update orig, Player self, int i)
     {
         orig(self, i);
@@ -58,6 +62,14 @@ public class OnEnterWorld
             Main.mouseItem = mouseItem;
             mouseItem = null;
         }
+
+        if (playerNotifications.Count > 0)
+        {
+            foreach((string message, Color color) in playerNotifications)
+                Main.NewText(message, color);
+            playerNotifications.Clear();
+        }
+
         On.Terraria.Player.Update -= OnFirstUpdate;
     }
 }
