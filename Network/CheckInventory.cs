@@ -124,7 +124,7 @@ namespace ScuffedAnticheatMod.Network
             if(items.Count == 0)
                 return;
 
-            string message = $"[ScuffedAnticheatMod] Player item mismatch with server.\nPlayer: {player.name}\nNew Items: ";
+            string message = $"[ScuffedAnticheatMod] Player item mismatch with server.\n - Player: {player.name}\n - New Items: ";
             foreach(EzItem item in items)
             {
                 if(item.type == 0)
